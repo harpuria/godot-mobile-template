@@ -1,0 +1,26 @@
+# Godot generated state and export credentials
+.godot/
+/export.cfg
+/export_credentials.cfg
+/android/build/
+/android/.gradle/
+/build/
+/dist/
+*.apk
+*.aab
+*.ipa
+*.xcarchive
+*.keystore
+*.jks
+*.p12
+*.p8
+*.mobileprovision
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+*secret*
+*credentials*
+config/*.local.*
+.DS_Store
