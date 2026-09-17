@@ -1,5 +1,9 @@
 # Repository instructions
 
+## Start here
+
+- At the start of a new task, read [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md) for entry points, ownership, task-to-file mappings and validation routes. Follow its task-specific document links before editing the relevant area.
+
 ## Commands
 
 - Shell commands must be prefixed with `rtk`; use `rtk proxy <command>` for unfiltered output.
@@ -36,3 +40,4 @@
 - Add a short Korean `##` class description at the top of each `.gd` file and Korean doc comments for major methods.
 - Keep game rules and data schemas in `game/`; adapters must not grant game-specific rewards.
 - Keep generated design/plan/validation documents under `docs/` and update README entry points when behavior changes.
+- Update `docs/CODEBASE_MAP.md` in the same change when moving files or changing entry flows, public access APIs, configuration propagation or validation commands.

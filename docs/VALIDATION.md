@@ -1,5 +1,21 @@
 # Validation — 2026-09-16
 
+## 후속 확인 — 2026-09-18 사용자 보고
+
+사용자가 Android 실기기에서 실행과 다음 Mock 결과를 확인했다. 아래는 사용자 보고이며 Agent가 직접 재실행한 결과는 아니다.
+
+| 항목 | 사용자 확인 결과 |
+| --- | --- |
+| 광고 | 성공 |
+| Mock Purchase Success | `purchase_completed : REMOVE_ADS` |
+| Mock Purchase Cancel | `purchase_cancelled : REMOVE_ADS` |
+| Mock Purchase Error | `purchase_failed : REMOVE_ADS / mock_error` |
+| Mock 복원 | `restore_completed : 1 item(s)` |
+
+기기 모델·OS·빌드 도구 버전·테스트한 commit은 보고되지 않았다. 이 확인은 실제 광고 SDK나 스토어 결제 검증을 의미하지 않는다. iOS 실행과 release 빌드 검증도 별도로 남아 있다.
+
+아래 환경과 export 실패 내용은 **2026-09-16 최초 Agent 검증 당시의 기록**이며, 현재 Android 실행 불가를 의미하지 않는다.
+
 ## 환경
 
 - Engine: `4.7.2.stable.official.ed1daf0bf`.
