@@ -16,11 +16,11 @@ External Plugin / Native SDK
 
 - **Game (`game/`)**: 게임 규칙, 보상, 저장 데이터 schema, 상품별 entitlement와 중복 지급 정책.
 - **Service (`services/`)**: 게임 친화적인 요청/결과 신호, feature flag, 동의 gate, logical product mapping, 동시 작업 제어.
-- **Adapter**: SDK 호출, SDK 상태/콜백을 공통 결과로 변환. 현재 Mock과 unavailable 구현만 존재.
+- **Adapter**: SDK 호출, SDK 상태/콜백을 공통 결과로 변환. 광고·결제 등은 Mock과 unavailable 구현이다. 게임 서비스의 Android AAR는 설치해 기기 로딩을 확인했고 계정 기능은 미검증이다. iOS 바이너리는 미설치다.
 - **Plugin/SDK (`addons/`, 향후 iOS native 위치)**: 정확히 고정한 검증 dependency. game 코드에서 접근 금지.
 
 App은 구성 지점이다. singleton 하나에 게임 규칙을 모으지 않으며 Service instance만 생성·소유한다.
-게임은 `App.ads` (AdsService), `App.billing` (BillingService), `App.analytics`, `App.privacy`, `App.review`를 사용한다.
+게임은 `App.ads` (AdsService), `App.billing` (BillingService), `App.analytics`, `App.privacy`, `App.review`, `App.game_services` (GameServicesService)를 사용한다.
 광고 또는 결제 플러그인을 교체해도 게임의 호출 지점은 유지한다.
 
 ## Initialization
@@ -62,6 +62,13 @@ Mock 복원은 세션 메모리의 비소모성/구독 거래만 반환한다.
 Analytics: 동의 전 호출은 false, 허용된 Mock은 이름만 로그로 기록한다.
 Privacy: unknown/granted/denied/disabled/unavailable의 초기 Mock 모델. SDK별 세부 상태와 동의 UI는 adapter 소유다.
 Review: 요청 처리 결과만 제공하며 리뷰 창 표시 또는 작성 완료를 보장하지 않는다.
+Game services: 명시적 로그인, 일반 업적 해제, 논리 ID의 점수 제출과 플랫폼 화면 요청을 제공한다.
+요청은 직렬화하고 요청 ID로 결과를 연결한다. 타임아웃 난 OS 요청의 콜백을 새 요청에 재사용하지 않는다.
+Mock은 Debug에서만 성공할 수 있고 실제 업적 보상/진행 저장은 game 소유다.
+Android/iOS native는 플랫폼별 초기화 gate 기본 false다. Android AAR는 별도 Gradle preset의 SDK 포함 옵션으로 선택한다.
+GameConfig는 exporter가 주입한 whitelist 설정을 읽고 `android_mode=native`로 게임 서비스만 native로 선택할 수 있다.
+기본 흐름에는 새 singleton을 추가하지 않는다. `pgs_probe` feature는 App 초기화 전에 별도 진단 장면으로 분기한다.
+API, 화면 요청 의미 및 iOS 점수 범위는 [GAME_SERVICES.md](GAME_SERVICES.md)를 따른다.
 
 Native 결제 도입 시 pending/transaction update/검증/acknowledge/consume/finish/restore를 명시적으로 설계해야 한다.
 현재 Mock success를 native 결제 lifecycle 전체라고 해석하지 않는다.

@@ -10,6 +10,12 @@ func _ready() -> void:
 	var error := config.load("res://config/game.cfg")
 	if error != OK:
 		push_error("Configuration load failed: %s" % error)
+	# Android exporter가 허용한 게임 서비스 로컬 설정만 빌드에 주입한다.
+	var build_config := ConfigFile.new()
+	if build_config.load("res://config/game_services.build.cfg") == OK and build_config.has_section("game_services"):
+		for key in build_config.get_section_keys("game_services"):
+			if key in ["android_game_id", "android_mode", "android_native_verified", "leaderboard_ids", "achievement_ids"]:
+				config.set_value("game_services", key, build_config.get_value("game_services", key))
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://config/products.json"))
 	if parsed is Dictionary:
 		products = parsed

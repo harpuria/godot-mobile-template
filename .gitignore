@@ -19,8 +19,9 @@
 *.key
 .env
 .env.*
+config/*.local.*
+config/*.build.*
 !.env.example
 *secret*
 *credentials*
-config/*.local.*
 .DS_Store

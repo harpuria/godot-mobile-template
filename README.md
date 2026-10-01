@@ -34,6 +34,9 @@ Android 휴대폰에서 실행과 테스트용 광고·결제를 확인했다(�
 | 취소·오류 연습 | `Mock Purchase Cancel`, `Mock Purchase Error` | `purchase_cancelled`, `purchase_failed`가 각각 나온다 |
 | 구매 복원 연습 | 구매 성공 후 `Restore Mock Purchases` | `1 item(s)`가 나온다 |
 | 화면 바꾸기 | `Scene Transition` | 다른 화면으로 이동한다 |
+| 게임 서비스 로그인 연습 | `Game Services Sign In` | `authenticate`와 `mock: true`가 나온다 |
+| 업적·점수 연습 | 로그인 후 `Unlock Demo Achievement`, `Submit Demo Score` | 각 요청의 Mock 완료 결과가 나온다 |
+| 업적·리더보드 화면 요청 연습 | 로그인 후 `Show Achievements`, `Show Leaderboard` | `ui_status: requested`가 나온다. 실제 스토어 화면은 열리지 않는다 |
 
 복원 연습은 앱을 끄지 않은 상태에서 진행한다. 실제 구매 내역은 아니다.
 
@@ -78,6 +81,10 @@ allow_mobile_debug_mocks=true
 **iPhone:** Mac과 Xcode가 필요하다. [iPhone 준비 방법](docs/DEVELOPMENT.md#ios-setup)을 따라 설정한다.
 
 실제 광고와 결제를 붙이거나 스토어에 올리는 작업은 별도로 필요하다.
+Google Play Games / Game Center는 공통 API와 Mock, 플랫폼 Adapter 연결 코드가 있다.
+Android Play Games v3.4.0 플러그인을 설치했고 Android 16에서 Debug·Release 로딩을 확인했다.
+실제 계정·업적·리더보드는 Play Console 설정 후 검증해야 한다. iOS 플러그인은 아직 미설치다.
+[게임 서비스 안내](docs/GAME_SERVICES.md)에서 설정과 네이티브 통합 요건을 확인한다.
 
 ## 잘 안 될 때
 
@@ -98,10 +105,16 @@ allow_mobile_debug_mocks=true
 | Godot / 내장 GDScript | 4.7.2 |
 | 이 템플릿 | 0.1.0 |
 | 추가 광고·결제 플러그인 | 설치하지 않음 |
+| 게임 서비스 Service / Mock / Adapter | 템플릿 내 GDScript 구현, 네이티브 미검증 |
+| Android Play Games plugin | [v3.4.0](https://github.com/godot-sdk-integrations/godot-play-game-services/releases/tag/v3.4.0), MIT; 4.7.2 Debug·Release 기기 로딩 통과, 계정 미검증 |
+| Android native SDK | Google `play-services-games-v2:21.0.0` ([약관](https://developers.google.com/terms)), `gson:2.11.0` (Apache-2.0); Gradle export opt-in |
+| iOS Game Center | 바이너리 미설치; [고정 소스·호환성 기록](docs/DEPENDENCIES.md#게임-서비스-후보--2026-10-01) |
 
 ## 더 자세히 보기
 
 - [개발 상세 안내](docs/DEVELOPMENT.md): 설정, 코드 사용 예제, Android·iPhone 빌드 방법
+- [게임 서비스 안내](docs/GAME_SERVICES.md): 로그인·업적·리더보드 API, Mock 및 네이티브 연결 요건
+- [Android Play Games 설정](docs/ANDROID_PLAY_GAMES.md): Gradle 진단 빌드, Console ID·OAuth·테스터, 실기기 검증 절차
 - [도구·라이선스 기록](docs/DEPENDENCIES.md): 정확한 버전과 사용 조건
 - [검증 기록](docs/VALIDATION.md): 어디까지 확인했는지
 - [AI 작업 규칙](AGENTS.md) · [코드 안내서](docs/CODEBASE_MAP.md) · [설계 설명](docs/ARCHITECTURE.md)

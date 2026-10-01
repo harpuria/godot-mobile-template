@@ -2,5 +2,8 @@
 extends Node
 
 func _ready() -> void:
+	if OS.has_feature("pgs_probe"):
+		SceneManager.change_scene("res://scenes/android_game_services_probe.tscn", false)
+		return
 	App.initialize()
 	SceneManager.change_scene(str(GameConfig.value("app", "main_scene", "res://scenes/main.tscn")))

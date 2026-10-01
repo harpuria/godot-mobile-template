@@ -8,6 +8,7 @@
 project.godot
   ├─ Autoload 준비: GameConfig → Settings → SaveManager → AudioManager → SceneManager → App
   └─ scenes/bootstrap.tscn → scenes/bootstrap.gd
+       ├─ pgs_probe export feature → scenes/android_game_services_probe.tscn (기기 진단)
        ├─ App.initialize()
        │    ├─ 방향 설정 및 서비스/Adapter 생성
        │    └─ SaveManager.load_slot() → initialized 신호
@@ -16,7 +17,7 @@ project.godot
 ```
 
 - Autoload는 [project.godot](../project.godot)에 등록된 앱 수명의 인스턴스입니다. `SaveManager`, `Settings`, `AudioManager`, `SceneManager`를 직접 사용합니다.
-- `AdsService`, `BillingService` 등은 클래스 이름입니다. [App](../autoload/app.gd)이 서비스 인스턴스를 소유하며 게임은 `App.ads`, `App.billing`, `App.analytics`, `App.privacy`, `App.review`로 접근합니다. 서비스는 `App.initialize()` 이후 사용할 수 있습니다.
+- `AdsService`, `BillingService` 등은 클래스 이름입니다. [App](../autoload/app.gd)이 서비스 인스턴스를 소유하며 게임은 `App.ads`, `App.billing`, `App.analytics`, `App.privacy`, `App.review`, `App.game_services`로 접근합니다. 서비스는 `App.initialize()` 이후 사용할 수 있습니다.
 - `App.initialize()`는 중복 실행을 방지합니다. 새 게임의 진입점은 `app/main_scene`으로 지정하고 bootstrap부터 실행합니다.
 - `core/`와 `ui/`의 클래스는 필요할 때 생성·사용하는 공통 코드입니다. 별도 singleton으로 등록되어 있지 않습니다.
 
@@ -34,18 +35,22 @@ project.godot
 | BGM·SFX·UI 사운드 | `autoload/audio_manager.gd`; 게임 음원은 `game/` 아래에 배치 |
 | 장면 이동·로딩 화면 | `autoload/scene_manager.gd`, `ui/loading/loading.tscn` |
 | 광고·결제 등 서비스 동작 | `services/<기능>/`의 Service → 기본 Adapter → Mock 순서로 읽기 |
+| 게임 로그인·업적·리더보드 | `docs/GAME_SERVICES.md`, `services/game_services/`; 검증은 `tests/game_services_checks.gd`와 `tests/integration.tscn` |
 | 네이티브 SDK 연결 | 해당 서비스의 새 Adapter + `autoload/app.gd`의 선택 코드; dependency 조사 문서 먼저 읽기 |
+| Android Play Games export·기기 진단 | `docs/ANDROID_PLAY_GAMES.md`, `addons/play_game_services/plugin.gd`, `scenes/android_game_services_probe.gd` |
 | 상품 ID·타입 변경 | `config/products.json`; 매핑 로직은 `services/billing/billing_service.gd` |
 | pause/resume·Android back | `autoload/app.gd`의 신호를 게임/UI에서 구독 |
 | 플랫폼·진동·안전 영역 | `core/platform/mobile_platform.gd`, `ui/common/safe_area.gd` |
 | 앱 이름·버전·패키지·방향 | `config/game.cfg`, `tools/configure.gd` |
 | 동작 예제·회귀 검사 | `scenes/demo.gd`, `scenes/transition_demo.gd`, `tests/integration.gd` |
 
-`scenes/`와 `assets/demo/`는 프레임워크 검증 예제입니다. `addons/`는 현재 외부 SDK가 없는 자리이며, `core/events/`, `core/utils/`, `ui/popup/`은 예약 디렉터리입니다.
+`scenes/`와 `assets/demo/`는 프레임워크 검증 예제입니다. `addons/play_game_services/`는 고정 Android AAR와 export 연결을 소유합니다. `core/events/`, `core/utils/`, `ui/popup/`은 예약 디렉터리입니다.
 
 ## 설정을 바꿀 때
 
 - **런타임 설정:** `GameConfig`가 `config/game.cfg`와 `config/products.json`을 시작 시 읽습니다. feature flag와 서비스 mode를 바꾼 후 앱을 재시작하세요.
+- **게임 서비스:** `features/game_services_enabled`, `game_services`의 논리 ID Dictionary·timeout·플랫폼별 `*_native_verified`가 App → Service/Adapter에 전달됩니다. Android AAR는 export opt-in이며 플랫폼 gate는 기본 false입니다. ID의 플랫폼 키는 소문자 `android`, `ios`입니다.
+- **Android 설정 전파:** exporter가 `config/game_services.local.cfg`의 허용된 ID·mode·gate만 `config/game_services.build.cfg`로 주입하고 GameConfig가 이를 읽습니다. `android_mode=native`로 다른 서비스 mode와 독립적으로 native를 선택합니다. Android Gradle preset의 `game_services/include_sdk=true`가 필요합니다.
 - **프로젝트·export 설정:** 앱 이름·버전·package/bundle·orientation을 바꾸면 `tools/configure.gd`를 실행해 `project.godot`와 `export_presets.cfg`에 반영합니다. 이 도구는 export 경로와 include/exclude filter도 기록하므로 실행 후 diff를 확인하세요.
 - **로컬 빌드 환경:** JDK/SDK 경로는 Godot Editor Settings, signing은 로컬 export 자격 증명에서 관리합니다. `config/*.local.*` 파일을 만드는 것만으로 설정이 자동 합쳐지지는 않습니다.
 

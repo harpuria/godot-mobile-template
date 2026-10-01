@@ -1,6 +1,7 @@
 # Dependency 조사 및 Compatibility BOM
 
 조사일: **2026-09-16**. 기준 엔진: **Godot 4.7.2**, Template: **0.1.0**.
+게임 서비스의 후속 확인일은 **2026-10-01**이며 아래 설치·기기 검증 기록을 따른다.
 
 공식 Godot 아카이브에서 4.7.2 stable의 공개일 **2026-08-18**을 확인했다. 엔진 버전은 변경하지 않는다. [공식 다운로드](https://godotengine.org/download/archive/4.7.2-stable/), [릴리스 설명](https://godotengine.org/article/maintenance-release-godot-4-7-2/)
 
@@ -8,7 +9,7 @@
 
 - **Locked**: 이 템플릿이 지정한 정확한 버전.
 - **Upstream supported**: 제작자의 지원 범위 또는 릴리스 테스트 주장. 이 프로젝트의 기기 검증과 다르다.
-- **Unverified**: 이 프로젝트와 Godot 4.7.2 조합으로 Android/iOS export 및 기기 실행을 검증하지 않았다.
+- **Unverified**: 해당 기능 또는 플랫폼을 이 프로젝트와 Godot 4.7.2 조합으로 검증하지 않았다. 부분적인 AAR 로딩 검증은 계정 기능의 검증을 대신하지 않는다.
 - **Experimental**: 제작자가 API 불안정 또는 개발 중이라고 명시했다.
 - **Unknown**: 공개 자료로 정확한 값이나 상태를 확정하지 못했다.
 
@@ -18,11 +19,13 @@
 | --- | --- | --- | --- | --- | --- |
 | Engine | Godot Engine | 4.7.2 | Android / iOS / Desktop | 기준 버전 | Locked |
 | Language | GDScript | Godot 4.7.2 내장 | All | 엔진에 포함 | Locked |
-| Services | 저장/설정/오디오/씬/Mock 서비스 | Template 0.1.0 | All | 실행 검증 결과는 README 참고 | In-repo |
-| Native plugins | 없음 | N/A | Android / iOS | 외부 통합 보류 | Not installed |
-| External native SDKs | 없음 | N/A | Android / iOS | SDK 종속성 미도입 | Not installed |
+| Services | 저장/설정/오디오/씬/Mock 서비스, 게임 서비스 Service/Adapter | Template 0.1.0 | All | 실행 검증 결과는 README 참고; native 미검증 | In-repo |
+| Native plugin | Godot Play Game Services | v3.4.0 | Android | 4.7.2 Debug/Release export·기기 로딩 통과; 계정 기능 미검증 | Installed, export opt-in |
+| External native SDK | Google Play Games Services v2 | 21.0.0 | Android | 위 플러그인과 Gradle 의존성 해결 확인 | Installed, export opt-in |
+| Serialization | Gson | 2.11.0 | Android | 위 플러그인의 고정 의존성 | Installed, export opt-in |
+| iOS native plugins | 없음 | N/A | iOS | GameCenter 바이너리 통합 보류 | Not installed |
 
-이 BOM은 **SDK가 없는 기본 scaffold의 BOM**이다. 광고·결제 실기기 검증 조합이라고 표현하지 않는다. Godot는 [MIT 라이선스](https://godotengine.org/license/)이며 엔진 배포물의 제3자 고지 역시 보존한다. 설치는 4.7.2 Standard 편집기 및 정확히 일치하는 4.7.2 export templates를 사용한다. [엔진 소스](https://github.com/godotengine/godot)
+기본 Android preset은 SDK를 포함하지 않는다. Play Games SDK는 별도 Gradle export에서 명시적으로 선택한다. 광고·결제 실기기 검증 조합이라고 표현하지 않는다. Godot는 [MIT 라이선스](https://godotengine.org/license/)이며 엔진 배포물의 제3자 고지 역시 보존한다. 설치는 4.7.2 Standard 편집기 및 정확히 일치하는 4.7.2 export templates를 사용한다. [엔진 소스](https://github.com/godotengine/godot)
 
 ## 다음 Native BOM 후보 — 아직 설치하지 않음
 
@@ -83,6 +86,56 @@
 - 설치 계획: 5.3 플랫폼 archive를 추출하고 플러그인 활성화, Android Gradle 및 iOS export plugin 활성화. 실제 리뷰 창은 스토어 정책/할당량에 따라 나타나지 않을 수 있다. 호출 완료를 사용자의 리뷰 작성 완료로 해석하지 않는다.
 - optional 모듈이므로 현재 Mock/interface 유지. 마지막 확인 **2026-09-16**, 4.7.2 프로젝트 호환성 **Unverified**.
 
+## 게임 서비스 후보 — 2026-10-01
+
+Android v3.4.0 AAR는 설치했고, 기본 preset의 SDK 포함 옵션은 false다.
+Android 기기 로딩은 통과했지만 Google 계정 기능과 iOS Game Center는 **Unverified**이며 플랫폼별 native gate 기본값은 false다.
+
+| 후보 | 고정 버전 / 소스 | 라이선스 | Native dependency | Godot 4.7.2 상태 |
+| --- | --- | --- | --- | --- |
+| Godot Play Game Services | **v3.4.0** | MIT | `play-services-games-v2:21.0.0`, `gson:2.11.0` | README 4.3+; upstream 빌드 4.5.1; 이 프로젝트 4.7.2 기기 로딩 통과, 계정 미검증 |
+| Godot iOS Plugins / GameCenter | **caafb2c7fbfb5c72a64f163c76449274fa49abaa** commit | MIT | Apple GameKit OS framework; 독립 패키지 버전 N/A | 고정 소스에 Godot 4.x/4.6+ 분기; 4.7.2용 바이너리/기기 Unverified |
+
+### Android API 조사
+
+- Source: [v3.4.0 release](https://github.com/godot-sdk-integrations/godot-play-game-services/releases/tag/v3.4.0),
+  [태그 MIT 라이선스](https://github.com/godot-sdk-integrations/godot-play-game-services/blob/v3.4.0/LICENSE),
+  [태그 build.gradle.kts](https://github.com/godot-sdk-integrations/godot-play-game-services/blob/v3.4.0/plugin/build.gradle.kts).
+- 빌드 설정: compileSdk **35**, minSdk **21**, Java **17**, Godot library **4.5.1.stable**.
+  이 플러그인은 `implementation`으로 Godot library를 선언한다. 4.7.2 Gradle export에서 dependency resolution과
+  Godot library 중복/ABI를 확인하기 전에는 호환성이 입증된 것으로 취급하지 않는다.
+- 확인한 [메서드](https://github.com/godot-sdk-integrations/godot-play-game-services/blob/v3.4.0/plugin/src/main/java/com/jacobibanez/plugin/android/godotplaygameservices/GodotAndroidPlugin.kt)와
+  [신호](https://github.com/godot-sdk-integrations/godot-play-game-services/blob/v3.4.0/plugin/src/main/java/com/jacobibanez/plugin/android/godotplaygameservices/signals/Signals.kt)에 맞춰
+  `AndroidGameServicesAdapter`를 작성했다. 계약 검사는 가짜 SDK이며, 후속 AAR 기기 로딩 검사는 별도로 기록했다.
+- 후속 설치: 고정 release의 debug/release AAR와 MIT 고지를 `addons/play_game_services/`에 보존했다.
+  upstream GDScript autoload는 도입하지 않았고 자체 export plugin이 AAR와 위 두 Maven 의존성만 연결한다.
+  두 AAR의 `classes.jar`에 `org/godotengine/` 클래스가 없고 Gradle graph에도 Maven Godot 4.5.1이 없음을 확인했다.
+  실행 엔진은 4.7.2 template의 Godot library다. [실제 의존성 graph](PGS_ANDROID_DEPENDENCIES.txt).
+- Release archive SHA-256: `3a1af78f5b9cbf13253b6bffb7795f0c1a9e7d1495052cd456bb6cfb1c265edd`.
+  Debug AAR: `7e737a981fb6d1141e70af1dac77a8fc39685c7137aa5b2bc3874b3e38f44b31`.
+  Release AAR: `e667109b44b0b5e6eb3ef1c7ca3b6c0f10d71fd0d2b3402b72785a4d7b16cbb9`.
+- Native SDK source: [Google Maven](https://maven.google.com/), [Play Games 안내](https://developer.android.com/games/pgs/start).
+  Google SDK는 [Google APIs 약관](https://developers.google.com/terms)을 따르며 MIT 플러그인과 별개다.
+  Gson 2.11.0은 [Apache-2.0](https://github.com/google/gson/blob/gson-parent-2.11.0/LICENSE)이다.
+- 실제 Game ID·OAuth package/SHA-1·테스터·업적·리더보드 설정은 사용자가 아직 준비하지 않았다.
+  플러그인의 MIT와 Google SDK 약관은 별개다. 기본 Mock APK export 성공은 네이티브 BOM 검증을 대신하지 않는다.
+
+### iOS API 조사
+
+- Source: [고정 GameCenter 소스](https://github.com/godot-sdk-integrations/godot-ios-plugins/tree/caafb2c7fbfb5c72a64f163c76449274fa49abaa/plugins/gamecenter),
+  [고정 MIT 라이선스](https://github.com/godot-sdk-integrations/godot-ios-plugins/blob/caafb2c7fbfb5c72a64f163c76449274fa49abaa/LICENCE),
+  [플러그인 manifest](https://github.com/godot-sdk-integrations/godot-ios-plugins/blob/caafb2c7fbfb5c72a64f163c76449274fa49abaa/plugins/gamecenter/gamecenter.gdip).
+- manifest는 `GameKit.framework`, `gamekit` capability, `gamecenter.xcframework`를 지정한다.
+  Apple OS SDK 약관은 MIT와 별개다. 고정 commit은 API 조사 기준이며 정식 바이너리 release를 의미하지 않는다.
+- `IOSGameServicesAdapter`는 singleton의 pending event queue 계약을 따른다.
+  현재 source는 `post_score`에서 float32를 사용하므로 Adapter가 정확한 정수 범위를 제한한다.
+- Godot 4.7.2-stable 헤더로 release/debug 빌드 및 xcframework 제작, 정확한 Xcode/iOS 최소 버전,
+  Game Center entitlement/Team ID/signing, 기기 인증·점수·업적 확인이 남아 있다. 도구 조합의 최소 버전은 **Unknown**이다.
+- [GodotApplePlugins](https://github.com/migueldeicaza/GodotApplePlugins)는 iOS **17.0+**를 요구하는 별도 MIT 대안이다.
+  현재 Adapter와 API가 다르고 정확한 release/native BOM을 이번 변경에서 채택하지 않았으므로 **Deferred**다.
+
+API와 후속 설치 절차는 [GAME_SERVICES.md](GAME_SERVICES.md)를 따른다.
+
 ## Export toolchain 참고
 
 Godot 4.7 Android 공식 가이드는 **OpenJDK 17**, Android SDK Platform **35**, Build-Tools **35.0.1**, Platform-Tools **35.0.0 이상**, CMake **3.10.2.4988404**, NDK **r28b (28.1.13356709)**를 안내한다. SDK command-line tools는 공식 문서가 `latest`라고만 지정하므로 이 템플릿에서 정확한 revision은 **Unknown / 미고정**이며 실제 설치 후 기록해야 한다. Native plugin 도입 시 그 플러그인의 더 높은 compileSdk 요구를 별도로 조정한다. [Godot 4.7 Android export](https://docs.godotengine.org/en/4.7/tutorials/export/exporting_for_android.html)
@@ -99,4 +152,5 @@ iOS는 **macOS + Xcode + 엔진과 일치하는 export templates**가 필요하�
 6. 기기/OS/툴체인/테스트 날짜와 결과를 기록하고 검증한 조합 전체를 README/BOM에 반영한다.
 7. Template 버전을 갱신한다. 자동 latest 업데이트와 조용한 엔진 업그레이드는 금지한다.
 
-현재 문서는 조사 결과이며 Android/iOS 실기기 통합 테스트 보고서가 아니다.
+Android Play Games의 export·기기 로딩 결과는 [VALIDATION.md](VALIDATION.md)에 별도로 기록했다.
+Google 계정 기능 및 다른 native 후보의 호환성이 검증된 것으로 확대 해석하지 않는다.

@@ -12,6 +12,7 @@ var billing: BillingService
 var analytics: Analytics
 var privacy: PrivacyService
 var review: ReviewService
+var game_services: GameServicesService
 
 ## bootstrap에서 한 번 호출한다. native 미설치 기능은 unavailable adapter를 사용한다.
 func initialize() -> void:
@@ -37,10 +38,34 @@ func initialize() -> void:
 	review = ReviewService.new()
 	add_child(review)
 	review.initialize(GameConfig.enabled("review"), MockReviewAdapter.new() if mock and GameConfig.enabled("review") else ReviewAdapter.new())
+	game_services = GameServicesService.new()
+	add_child(game_services)
+	game_services.initialize(GameConfig.enabled("game_services"), _game_services_adapter(mock),
+		GameConfig.value("game_services", "leaderboard_ids", {}),
+		GameConfig.value("game_services", "achievement_ids", {}), MobilePlatform.current().to_lower(),
+		float(GameConfig.value("game_services", "timeout_seconds", 120.0)))
 	SaveManager.load_slot()
 	ready_for_game = true
 	AppLogger.info("App", "Platform=%s Mock=%s" % [MobilePlatform.current(), mock])
 	initialized.emit()
+
+## 기능 off와 미검증 native 구성은 SDK를 초기화하지 않는다.
+func _game_services_adapter(mock: bool) -> GameServicesAdapter:
+	if not GameConfig.enabled("game_services"):
+		return GameServicesAdapter.new()
+	var android_mode := str(GameConfig.value("game_services", "android_mode", "inherit")) if MobilePlatform.current() == "Android" else "inherit"
+	if mock and android_mode == "inherit":
+		return MockGameServicesAdapter.new()
+	if android_mode != "native" and GameConfig.value("services", "mode", "native") != "native":
+		return GameServicesAdapter.new()
+	if not bool(GameConfig.value("game_services", MobilePlatform.current().to_lower() + "_native_verified", false)):
+		return GameServicesAdapter.new()
+	match MobilePlatform.current().to_lower():
+		"android":
+			return AndroidGameServicesAdapter.new()
+		"ios":
+			return IOSGameServicesAdapter.new()
+	return GameServicesAdapter.new()
 
 func _apply_orientation() -> void:
 	if not MobilePlatform.is_mobile():

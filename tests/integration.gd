@@ -36,6 +36,10 @@ func _run() -> void:
 	App.initialize()
 	check(App.billing == billing_before, "Idempotent initialization")
 	check(GameConfig.use_mocks(), "Desktop debug Mock selected")
+	var game_services_checks := preload("res://tests/game_services_checks.gd").new()
+	add_child(game_services_checks)
+	await game_services_checks.run(self)
+	game_services_checks.queue_free()
 	SaveManager.set_value("progress", {"level": 3, "flags": [true, false]})
 	check(SaveManager.save_slot() == OK, "Save succeeds")
 	SaveManager.data.clear()
@@ -167,7 +171,22 @@ func _run() -> void:
 				child.pressed.emit()
 	await get_tree().create_timer(0.4).timeout
 	check(not AudioManager.bgm.playing, "Demo audio buttons wired")
+	App.game_services.request_completed.connect(func(operation: String, details: Dictionary): results.append(["game_services", operation, details]))
+	var game_buttons := {"Game Services Sign In": "authenticate", "Submit Demo Score": "submit_score",
+		"Unlock Demo Achievement": "unlock_achievement", "Show Leaderboard": "show_leaderboard", "Show Achievements": "show_achievements"}
+	for text in game_buttons:
+		var before := results.size()
+		for child in demo.content.get_children():
+			if child is Button and child.text == text:
+				child.pressed.emit()
+		await get_tree().create_timer(0.08).timeout
+		check(results.size() > before and results.back()[0] == "game_services" and results.back()[1] == game_buttons[text], "Demo game services button: " + text)
 	if "--capture" in OS.get_cmdline_user_args():
+		var scroll := demo.content.get_parent() as ScrollContainer
+		for child in demo.content.get_children():
+			if child is Button and child.text == "Game Services Sign In":
+				scroll.ensure_control_visible(child)
+		await get_tree().process_frame
 		RenderingServer.force_draw(false)
 		var image := get_viewport().get_texture().get_image()
 		check(image.save_png("/tmp/mobile-template-demo.png") == OK, "Rendered screenshot saved")
@@ -182,7 +201,7 @@ func _run() -> void:
 func _check_unavailable_initialization() -> void:
 	var disabled := "--disabled" in OS.get_cmdline_user_args()
 	if disabled:
-		for feature in ["ads", "iap", "analytics", "privacy", "review"]:
+		for feature in ["ads", "iap", "analytics", "privacy", "review", "game_services"]:
 			GameConfig.config.set_value("features", feature + "_enabled", false)
 	else:
 		GameConfig.config.set_value("services", "mode", "native")
@@ -202,6 +221,15 @@ func _check_unavailable_initialization() -> void:
 	App.review.request_finished.connect(func(status: String): results.append(status))
 	App.review.request_review()
 	check(results.back() == ("disabled" if disabled else "unavailable"), "Review unavailable")
+	check(not App.game_services.adapter is MockGameServicesAdapter, "No Mock game services initialized")
+	App.game_services.request_failed.connect(func(_operation: String, reason: String): results.append(reason))
+	App.game_services.authenticate()
+	check(results.back() == ("disabled" if disabled else "unavailable"), "Game services authentication unavailable")
+	App.game_services.submit_score("DEMO_SCORE", 100)
+	check(results.back() == ("disabled" if disabled else "unavailable"), "Game services score unavailable")
+	App.game_services.unlock_achievement("DEMO_FIRST_WIN")
+	check(results.back() == ("disabled" if disabled else "unavailable"), "Game services achievement unavailable")
+	check(not App.game_services.is_authenticated(), "No fake game services authentication")
 	DirAccess.remove_absolute(test_dir)
 	print("INTEGRATION %s: %s checks, %s failures" % ["disabled" if disabled else "native", checks, failures])
 	get_tree().quit(0 if failures == 0 else 1)
