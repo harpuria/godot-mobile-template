@@ -1,4 +1,4 @@
-# Architecture — Mobile Template 0.1.0
+# Architecture — Mobile Template 0.2.0
 
 ## Layer 책임
 
@@ -26,7 +26,9 @@ App은 구성 지점이다. singleton 하나에 게임 규칙을 모으지 않�
 ## Initialization
 
 Autoload 순서: GameConfig → Settings → SaveManager → AudioManager → SceneManager → App.
-bootstrap에서 게임별 migration을 등록한 다음 `App.initialize()` → 저장 load → 설정의 main_scene으로 이동한다.
+bootstrap은 `app/init_script`의 게임 hook(`before_app_initialize()`)을 호출해 게임별 schema·migration을 등록한 다음
+`App.initialize()` → 저장 load → 설정의 main_scene으로 이동한다. hook은 `game/`의 RefCounted script이며 프레임워크 파일을 고치지 않고 연결한다.
+hook 실패는 오류로 기록하고 초기화를 계속한다. 이 경우 미등록 schema의 저장은 기존 load 실패 정책대로 쓰기가 차단된다.
 initialize는 중복 호출해도 서비스를 다시 만들지 않는다.
 기능 off이면 외부 SDK나 Mock을 초기화하지 않고 unavailable 기본 adapter를 연결한다.
 release는 Mock을 선택하지 않는다. SDK 없는 release 구매를 성공으로 간주하지 않는다.

@@ -30,6 +30,7 @@ func _run() -> void:
 	if "--disabled" in OS.get_cmdline_user_args() or "--native" in OS.get_cmdline_user_args():
 		_check_unavailable_initialization()
 		return
+	_check_game_init_hook()
 	App.initialize()
 	check(App.ready_for_game, "App initialization")
 	var billing_before := App.billing
@@ -196,6 +197,18 @@ func _run() -> void:
 	DirAccess.remove_absolute(test_dir)
 	print("INTEGRATION: %s checks, %s failures" % [checks, failures])
 	get_tree().quit(0 if failures == 0 else 1)
+
+## bootstrap의 게임 초기화 hook 호출과 잘못된 script 거절을 검증한다.
+func _check_game_init_hook() -> void:
+	var bootstrap := preload("res://scenes/bootstrap.gd")
+	var fixture := preload("res://tests/fixtures/game_init_fixture.gd")
+	check(bootstrap.run_init_script(str(GameConfig.value("app", "init_script", ""))) == OK, "Configured game init script runs")
+	check(bootstrap.run_init_script("") == OK, "Empty game init script skipped")
+	var calls_before: int = fixture.calls
+	check(bootstrap.run_init_script("res://tests/fixtures/game_init_fixture.gd") == OK and fixture.calls == calls_before + 1, "Game init hook called once")
+	check(bootstrap.run_init_script("res://tests/fixtures/missing_init.gd") == ERR_FILE_NOT_FOUND, "Missing game init script reported")
+	check(bootstrap.run_init_script("res://tests/fixtures/game_init_invalid_node.gd") == ERR_INVALID_PARAMETER, "Node game init script rejected")
+	check(bootstrap.run_init_script("res://tests/fixtures/game_init_missing_method.gd") == ERR_METHOD_NOT_FOUND, "Game init script without hook rejected")
 
 ## 플래그가 모두 꺼지거나 native SDK가 없는 별도 초기화 경로를 검증한다.
 func _check_unavailable_initialization() -> void:

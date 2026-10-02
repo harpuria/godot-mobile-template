@@ -2,7 +2,7 @@
 extends Node
 
 const ENGINE_VERSION = "4.7.2"
-const TEMPLATE_VERSION = "0.1.0"
+const TEMPLATE_VERSION = "0.2.0"
 var config := ConfigFile.new()
 var products: Dictionary = {}
 

@@ -16,7 +16,7 @@ func _ready() -> void:
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_theme_constant_override("separation", 10)
 	scroll.add_child(content)
-	_label("MOBILE TEMPLATE  /  0.1.0", 28)
+	_label("MOBILE TEMPLATE  /  " + GameConfig.TEMPLATE_VERSION, 28)
 	_label("Godot %s · %s · %s" % [Engine.get_version_info().string, MobilePlatform.current(), "MOCK" if GameConfig.use_mocks() else "UNAVAILABLE"], 18)
 	_label("Framework validation • Scroll for settings", 18)
 	output = _label("Ready. Request mock consent before showing ads.", 20)

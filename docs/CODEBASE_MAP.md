@@ -9,6 +9,7 @@ project.godot
   ├─ Autoload 준비: GameConfig → Settings → SaveManager → AudioManager → SceneManager → App
   └─ scenes/bootstrap.tscn → scenes/bootstrap.gd
        ├─ pgs_probe export feature → scenes/android_game_services_probe.tscn (기기 진단)
+       ├─ config의 app/init_script → before_app_initialize() (게임 hook, 기본 비어 있음)
        ├─ App.initialize()
        │    ├─ 방향 설정 및 서비스/Adapter 생성
        │    └─ SaveManager.load_slot() → initialized 신호
@@ -27,9 +28,10 @@ project.godot
 
 | 작업 | 먼저 읽을 파일 / 수정 위치 |
 | --- | --- |
+| 템플릿을 새 게임에 적용·업데이트 | `docs/template/APPLYING.md`, `docs/template/CHANGELOG.md` |
 | 게임 장면·규칙 추가 | `game/README.md`, `game/`; 첫 장면 연결은 `config/game.cfg`의 `app/main_scene` |
-| 초기화 순서·서비스 선택 변경 | `scenes/bootstrap.gd`, `autoload/app.gd`, `autoload/game_config.gd` |
-| 게임 진행 저장·migration | `autoload/save_manager.gd`; 게임별 schema·변환 함수는 `game/`, 등록 시점은 아래 계약 참고 |
+| 초기화 순서·게임 hook·서비스 선택 변경 | `scenes/bootstrap.gd`, `autoload/app.gd`, `autoload/game_config.gd` |
+| 게임 진행 저장·migration | `autoload/save_manager.gd`; 게임별 schema·변환 함수는 `game/`의 init script, `app/init_script`로 연결 |
 | 저장 파일 입출력 자체 변경 | `core/storage/json_store.gd` |
 | 사용자 설정·설정 화면 | `autoload/settings.gd`, `ui/settings/settings_panel.gd` |
 | BGM·SFX·UI 사운드 | `autoload/audio_manager.gd`; 게임 음원은 `game/` 아래에 배치 |
@@ -42,9 +44,9 @@ project.godot
 | pause/resume·Android back | `autoload/app.gd`의 신호를 게임/UI에서 구독 |
 | 플랫폼·진동·안전 영역 | `core/platform/mobile_platform.gd`, `ui/common/safe_area.gd` |
 | 앱 이름·버전·패키지·방향 | `config/game.cfg`, `tools/configure.gd` |
-| 동작 예제·회귀 검사 | `scenes/demo.gd`, `scenes/transition_demo.gd`, `tests/integration.gd` |
+| 동작 예제·회귀 검사 | `scenes/demo.gd`, `scenes/transition_demo.gd`, `tests/integration.gd`, `tests/fixtures/` |
 
-`scenes/`와 `assets/demo/`는 프레임워크 검증 예제입니다. `addons/play_game_services/`는 고정 Android AAR와 export 연결을 소유합니다. `core/events/`, `core/utils/`, `ui/popup/`은 예약 디렉터리입니다.
+`scenes/`와 `assets/demo/`는 프레임워크 검증 예제이며 통합 검사가 사용하므로 새 게임에서도 유지합니다. `docs/template/`은 템플릿 자체의 적용 절차·변경 기록·구현 계획·검증 기록이며 게임 문서가 아닙니다. `addons/play_game_services/`는 고정 Android AAR와 export 연결을 소유합니다. `core/events/`, `core/utils/`, `ui/popup/`은 예약 디렉터리입니다.
 
 ## 설정을 바꿀 때
 
@@ -55,14 +57,14 @@ project.godot
 - **로컬 빌드 환경:** JDK/SDK 경로는 Godot Editor Settings, signing은 로컬 export 자격 증명에서 관리합니다. `config/*.local.*` 파일을 만드는 것만으로 설정이 자동 합쳐지지는 않습니다.
 
 ```bash
-rtk proxy godot --headless --path . --script res://tools/configure.gd
+godot --headless --path . --script res://tools/configure.gd
 ```
 
 `godot`가 PATH에 없으면 실행 파일 경로로 대체합니다. macOS 기본 설치 경로는 `/Applications/Godot.app/Contents/MacOS/Godot`입니다.
 
 ## 코드를 연결하기 전에 확인할 계약
 
-- **저장:** 게임별 `schema_version`과 migration은 bootstrap의 `App.initialize()` 전에 등록해야 합니다. 현재 전용 게임 초기화 hook은 없습니다. `set_value()`는 자동 저장 대상을 표시하지만 `data`를 직접 수정하면 `mark_dirty()`가 필요합니다. 사용자 설정은 별도 `Settings`로 저장합니다.
+- **저장:** 게임별 `schema_version`과 migration은 `App.initialize()` 전에 등록해야 합니다. `game/`에 `RefCounted` script를 만들어 `before_app_initialize()`에서 등록하고 `app/init_script`에 경로를 지정합니다. bootstrap(F5)만 hook을 호출하며 실패 시 오류를 기록하고 초기화를 계속합니다. `set_value()`는 자동 저장 대상을 표시하지만 `data`를 직접 수정하면 `mark_dirty()`가 필요합니다. 사용자 설정은 별도 `Settings`로 저장합니다.
 - **초기화 실패:** 현재 App은 저장 load 실패 후에도 초기화 완료를 알립니다. SaveManager는 쓰기를 차단하지만 복구 UI는 제공하지 않습니다. `ready_for_game`을 저장 성공의 증거로 사용하지 마세요.
 - **광고·동의:** 보상은 `rewarded_completed`에서 지급합니다. 광고·분석은 privacy의 granted 상태가 필요하며 `privacy_enabled=false`도 허용 상태가 아닙니다.
 - **결제:** 게임은 logical 상품 ID를 전달하고 `transaction_id` 기준 중복 지급 방지를 담당합니다. Mock 복원은 같은 실행 세션의 비소모성·구독 거래만 반환합니다.
@@ -80,10 +82,10 @@ rtk proxy godot --headless --path . --script res://tools/configure.gd
 | 문서만 변경 | 코드·경로·문서 링크 대조; 런타임 재검사 불필요 |
 
 ```bash
-rtk proxy godot --headless --path . --editor --import --quit
-rtk proxy godot --headless --path . --scene res://tests/integration.tscn
-rtk proxy godot --headless --path . --scene res://tests/integration.tscn -- --disabled
-rtk proxy godot --headless --path . --scene res://tests/integration.tscn -- --native
+godot --headless --path . --editor --import --quit
+godot --headless --path . --scene res://tests/integration.tscn
+godot --headless --path . --scene res://tests/integration.tscn -- --disabled
+godot --headless --path . --scene res://tests/integration.tscn -- --native
 ```
 
 기본 통합 검사는 기본 상품 구성을 사용하는 Desktop debug Mock 시나리오입니다. 상품·설정을 게임에 맞춰 바꿨다면 테스트 입력도 검토하세요. 테스트 저장은 임시 경로에 격리됩니다. 종료 코드, `INTEGRATION` 완료 요약의 실패 0건, script/parse error 부재를 함께 확인합니다. `--native`는 SDK 미설치 실패 경로를 검사하며 실제 스토어 테스트가 아닙니다.
@@ -92,7 +94,8 @@ rtk proxy godot --headless --path . --scene res://tests/integration.tscn -- --na
 
 - 계층·초기화·저장·서비스 계약 변경: [ARCHITECTURE.md](ARCHITECTURE.md).
 - dependency 선정·설치·버전 변경: [DEPENDENCIES.md](DEPENDENCIES.md), [README의 BOM](../README.md#dependency-bom).
-- 기존 검증 범위 판단·새 결과 기록: [VALIDATION.md](VALIDATION.md). 실행 환경·날짜와 직접 검증/사용자 보고를 구분하세요.
+- 템플릿 기능의 기존 검증 범위 판단·새 결과 기록: [template/VALIDATION.md](template/VALIDATION.md). 실행 환경·날짜와 직접 검증/사용자 보고를 구분하세요. 파생 게임의 검증은 게임 프로젝트의 문서(예: `docs/VALIDATION.md`, `docs/PLAYTEST_NOTES.md`)에 따로 기록합니다.
+- 새 게임에 적용·버전 업데이트: [template/APPLYING.md](template/APPLYING.md), [template/CHANGELOG.md](template/CHANGELOG.md).
 - 처음 실행·새 게임 생성: [README.md](../README.md). 상세 설정·API·플랫폼 export: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 파일 이동, 진입 흐름, 공개 접근 API, 설정 반영 방식 또는 검증 명령을 바꾸면 같은 변경에서 이 지도를 갱신합니다. 정책과 dependency 버전, 테스트 결과 전문은 각 담당 문서에 유지합니다.

@@ -1,0 +1,113 @@
+# 템플릿 적용 절차
+
+이 템플릿을 새 게임 또는 기존 게임 저장소에 가져오고, 이후 템플릿 버전을 올릴 때 따르는 절차다.
+사람과 AI Agent 모두 이 문서를 기준으로 한다. 버전별 변경은 [CHANGELOG.md](CHANGELOG.md)를 본다.
+
+## 원칙
+
+- GitHub의 template repository 기능을 전제하지 않는다. 아래의 clone → 복사 방법을 사용한다.
+- 템플릿의 Git 이력(`.git/`)과 Editor cache(`.godot/`)는 가져오지 않는다. 게임 저장소의 기존 파일·이력·remote를 보존한다.
+- 출처는 **저장소 URL + 태그 + commit hash**로 기록한다. 태그가 없는 commit을 쓰면 hash만 기록한다.
+- 템플릿 자체 문서(`docs/template/`)는 출처 참고용이다. 게임의 구현 계획·설계·검증 기록으로 사용하지 않는다.
+- scaffold 검증(아래 검증 명령)과 Android/iOS export·네이티브 서비스·실기기 검증은 따로 보고한다.
+
+## 1. 템플릿 받기
+
+저장소가 private이면 인증된 접근이 필요하다. 접근할 수 없으면 적용하지 말고 사용할 버전과 차단 사유만 기록한다.
+
+```bash
+git clone --depth 1 --branch v0.2.0 https://github.com/harpuria/godot-mobile-template /tmp/godot-mobile-template
+git -C /tmp/godot-mobile-template rev-parse HEAD
+```
+
+`v0.2.0` 대신 원하는 태그를 지정한다. 태그가 아직 없으면 `--branch main`으로 받고 `rev-parse` 결과를 기록한다.
+
+## 2. 프로젝트로 복사하기
+
+**새 프로젝트(빈 폴더):** `.git/`, `.godot/`을 제외하고 전부 복사한 뒤, 사용자가 동의하면 Git을 초기화한다.
+
+```bash
+rsync -a --exclude .git --exclude .godot /tmp/godot-mobile-template/ ./
+```
+
+**기존 저장소:** 기존 파일을 덮어쓰지 않도록 복사한다. 이름이 겹친 파일은 아래 표대로 직접 병합한다.
+
+```bash
+rsync -a --ignore-existing --exclude .git --exclude .godot /tmp/godot-mobile-template/ ./
+```
+
+기존 게임이라면 템플릿 전체 도입이 자동 migration은 아니다. 요청 범위에 필요한 Service·관리자만 가져오고 기존 구조를 유지한다.
+
+## 3. 파일 분류
+
+| 경로 | 처리 | 이유 |
+| --- | --- | --- |
+| `autoload/`, `core/`, `services/`, `ui/`, `tools/` | 유지 | 프레임워크. 게임 변경은 `game/`에서 한다 |
+| `addons/play_game_services/` | 유지 | Android Play Games AAR, export opt-in. 기본 export에는 SDK 미포함 |
+| `scenes/bootstrap.*` | 유지, 수정하지 않음 | 진입점. 게임 초기화는 `app/init_script` hook 사용 |
+| `scenes/main.tscn`, `scenes/demo.gd`, `scenes/transition_demo.*`, `assets/demo/` | 유지 | 통합 검사가 사용한다. 삭제하면 `tests/integration.tscn`이 실패한다 |
+| `scenes/android_game_services_probe.*` | 유지 | `pgs_probe` export feature 전용 기기 진단 |
+| `tests/` | 유지 | 프레임워크 회귀 검사. 게임 검사는 별도 파일로 추가 |
+| `project.godot`, `export_presets.cfg` | 유지 (기존 Godot 프로젝트면 병합) | Autoload·렌더러·export 설정. 값은 `tools/configure.gd`로 갱신 |
+| `config/game.cfg`, `config/products.json` | 게임 값으로 수정 | 아래 4단계 |
+| `game/` | 게임 코드 작성 위치 | `game/README.md`의 API 안내 유지 |
+| `AGENTS.md` | 게임 지침의 기반으로 병합 | Boundaries·Dependencies·Commands 규칙 유지, 게임 결정 추가 |
+| `README.md` | 게임 소개로 교체 가능 | 개발 문서 링크와 `Dependency BOM` 섹션은 유지(AGENTS가 참조) |
+| `docs/ARCHITECTURE.md`, `docs/CODEBASE_MAP.md`, `docs/DEVELOPMENT.md`, `docs/DEPENDENCIES.md`, `docs/GAME_SERVICES.md`, `docs/ANDROID_PLAY_GAMES.md`, `docs/PGS_ANDROID_DEPENDENCIES.txt` | 유지 | 프레임워크 계약·의존성 근거 |
+| `docs/template/` | 유지 (읽기 전용 참고) | 출처 버전의 변경·계획·검증 기록. 게임 문서를 여기에 쓰지 않는다 |
+| `.gitignore`, `.gitattributes`, `.editorconfig` | 유지 (기존 파일이면 병합) | Godot cache·build·서명 파일 제외 규칙 |
+
+게임의 구현 계획·검증 기록은 `docs/IMPLEMENTATION_PLAN.md`, `docs/VALIDATION.md` 등 게임 문서로 새로 만든다.
+
+## 4. 게임에 맞게 설정하기
+
+1. `config/game.cfg`의 `[app]`을 바꾼다: `name`, `version`(게임 앱 버전), `android_package`, `ios_bundle`(`com.example.*` 금지), `orientation`, `main_scene`.
+2. 사용하지 않는 기능은 `[features]`에서 `false`로 바꾼다. 상품은 `config/products.json`에서 정의한다.
+3. 저장 schema·migration이 필요하면 `game/`에 init script를 만들고 `[app] init_script`에 경로를 지정한다. 예시는 [game/README.md](../../game/README.md).
+4. 설정을 `project.godot`와 `export_presets.cfg`에 반영하고 diff를 확인한다.
+
+```bash
+godot --headless --path . --script res://tools/configure.gd
+```
+
+실제 게임 서비스 ID·signing 정보는 Git에 넣지 않는다. 절차는 [DEVELOPMENT.md](../DEVELOPMENT.md#configuration)와 [ANDROID_PLAY_GAMES.md](../ANDROID_PLAY_GAMES.md)를 따른다.
+Release 전에는 데모 장면·음원을 export에서 제외해야 한다. 현재 자동화되지 않았으므로 [Export](../DEVELOPMENT.md#export) 안내를 따른다.
+
+## 5. 출처 기록
+
+게임의 `AGENTS.md` 프로젝트 정보에 한 줄로 기록한다.
+
+```text
+- Template: godot-mobile-template v0.2.0 (https://github.com/harpuria/godot-mobile-template, commit <hash>), applied <YYYY-MM-DD>.
+```
+
+템플릿 파일을 의도적으로 바꾸거나 제외했다면 같은 곳에 짧게 남긴다.
+
+## 6. 검증
+
+```bash
+godot --headless --path . --editor --import --quit
+godot --headless --path . --scene res://tests/integration.tscn
+godot --headless --path . --scene res://tests/integration.tscn -- --disabled
+godot --headless --path . --scene res://tests/integration.tscn -- --native
+```
+
+종료 코드 0, `INTEGRATION` 요약의 실패 0건, `SCRIPT ERROR`·`Parse Error` 부재를 확인한다.
+상품·기능 설정을 바꿨다면 통합 검사의 기본 상품 가정과 맞는지 확인한다.
+F5로 bootstrap부터 실행해 `main_scene`이 열리고 init script 오류가 없는지 본다.
+이 결과는 Desktop scaffold 검증이다. export·네이티브·실기기 결과로 보고하지 않는다.
+
+## 템플릿 버전 업데이트
+
+1. 현재 기록된 버전과 목표 버전 사이의 [CHANGELOG.md](CHANGELOG.md) 항목, 특히 “파생 게임 업데이트 시 주의”를 읽는다.
+2. 템플릿 clone에서 두 버전의 프레임워크 변경만 확인한다.
+
+```bash
+git -C /tmp/godot-mobile-template fetch --tags
+git -C /tmp/godot-mobile-template diff v0.2.0 v0.3.0 -- autoload core services ui scenes tests tools addons project.godot export_presets.cfg docs
+```
+
+3. 프레임워크 경로의 변경을 게임에 적용한다. `game/`과 게임이 바꾼 `config/` 값, 게임 문서는 덮어쓰지 않는다.
+   `config/game.cfg`에 새로 생긴 키만 추가한다.
+4. 위 검증 명령을 실행하고 게임을 F5로 확인한다.
+5. 출처 기록의 버전·commit·날짜를 갱신한다.

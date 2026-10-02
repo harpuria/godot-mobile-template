@@ -4,7 +4,7 @@ Project: godot-mobile-template
 Godot: 4.7.2  
 Language: GDScript  
 Targets: Android / iOS  
-Template Version: 0.1.0
+Template Version: 0.2.0
 
 모바일 게임을 만들 때 쓰는 **시작용 프로젝트**다.
 저장, 소리, 화면 이동 기능이 들어 있다. `game/` 폴더에 게임을 만들면 된다.
@@ -42,7 +42,7 @@ Android 휴대폰에서 실행과 테스트용 광고·결제를 확인했다(�
 
 ## 3. 내 게임 만들기
 
-1. 이 프로젝트 폴더를 복사해 새 게임용으로 사용한다.
+1. 새 게임 폴더를 준비한다. 어떤 파일을 가져오고 어디에 출처를 적는지는 [템플릿 적용 절차](docs/template/APPLYING.md)를 따른다. AI에게 맡길 때도 이 문서를 따르게 한다.
 2. Godot에서 **Scene → New Scene → 2D Scene**을 선택하고 `game/main.tscn`으로 저장한다.
 3. [config/game.cfg](config/game.cfg)를 텍스트 편집기로 연다. 기존 `[app]` 안에서 다음 값만 바꾼다.
 
@@ -57,14 +57,14 @@ orientation="portrait"
 4. 이름과 방향을 적용한다. **Mac에서는 프로젝트 폴더에서 터미널을 열고** 아래 명령을 실행한다.
 
 ```bash
-rtk proxy /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/configure.gd
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/configure.gd
 ```
 
 명령이 어렵다면 AI에게 **“config/game.cfg의 설정을 프로젝트에 반영해 줘”**라고 요청해도 된다.
 
 5. 프로젝트를 다시 열고 **F5**를 누른다. 이제 `game/main.tscn`이 열린다. 처음에는 빈 화면이 정상이다. 이 장면부터 게임을 만든다.
 
-게임 파일은 `game/`, 게임 설정은 `config/`에 둔다. 공통 기능을 고칠 때는 [코드 안내서](docs/CODEBASE_MAP.md)를 참고한다.
+게임 파일은 `game/`, 게임 설정은 `config/`에 둔다. 저장 데이터 구조(버전·변환)가 필요해지면 [game/README.md](game/README.md)의 초기화 script 예시를 따른다. 공통 기능을 고칠 때는 [코드 안내서](docs/CODEBASE_MAP.md)를 참고한다.
 
 ## 4. 휴대폰에서 실행하기
 
@@ -103,7 +103,7 @@ Android Play Games v3.4.0 플러그인을 설치했고 Android 16에서 Debug·R
 | 구성 | 버전 |
 | --- | --- |
 | Godot / 내장 GDScript | 4.7.2 |
-| 이 템플릿 | 0.1.0 |
+| 이 템플릿 | 0.2.0 ([변경 기록](docs/template/CHANGELOG.md)) |
 | 추가 광고·결제 플러그인 | 설치하지 않음 |
 | 게임 서비스 Service / Mock / Adapter | 템플릿 내 GDScript 구현, 네이티브 미검증 |
 | Android Play Games plugin | [v3.4.0](https://github.com/godot-sdk-integrations/godot-play-game-services/releases/tag/v3.4.0), MIT; 4.7.2 Debug·Release 기기 로딩 통과, 계정 미검증 |
@@ -116,5 +116,7 @@ Android Play Games v3.4.0 플러그인을 설치했고 Android 16에서 Debug·R
 - [게임 서비스 안내](docs/GAME_SERVICES.md): 로그인·업적·리더보드 API, Mock 및 네이티브 연결 요건
 - [Android Play Games 설정](docs/ANDROID_PLAY_GAMES.md): Gradle 진단 빌드, Console ID·OAuth·테스터, 실기기 검증 절차
 - [도구·라이선스 기록](docs/DEPENDENCIES.md): 정확한 버전과 사용 조건
-- [검증 기록](docs/VALIDATION.md): 어디까지 확인했는지
+- [템플릿 적용 절차](docs/template/APPLYING.md): 새 게임에 가져오기, 출처 기록, 버전 업데이트
+- [변경 기록](docs/template/CHANGELOG.md): 템플릿 버전별 변경 내용
+- [검증 기록](docs/template/VALIDATION.md): 어디까지 확인했는지
 - [AI 작업 규칙](AGENTS.md) · [코드 안내서](docs/CODEBASE_MAP.md) · [설계 설명](docs/ARCHITECTURE.md)

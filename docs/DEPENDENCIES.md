@@ -13,13 +13,13 @@
 - **Experimental**: 제작자가 API 불안정 또는 개발 중이라고 명시했다.
 - **Unknown**: 공개 자료로 정확한 값이나 상태를 확정하지 못했다.
 
-## 채택 BOM — Mobile Template BOM v0.1.0
+## 채택 BOM — Mobile Template BOM v0.2.0
 
 | Category | Name | Version | Platform | Godot Compatibility | Status |
 | --- | --- | --- | --- | --- | --- |
 | Engine | Godot Engine | 4.7.2 | Android / iOS / Desktop | 기준 버전 | Locked |
 | Language | GDScript | Godot 4.7.2 내장 | All | 엔진에 포함 | Locked |
-| Services | 저장/설정/오디오/씬/Mock 서비스, 게임 서비스 Service/Adapter | Template 0.1.0 | All | 실행 검증 결과는 README 참고; native 미검증 | In-repo |
+| Services | 저장/설정/오디오/씬/Mock 서비스, 게임 서비스 Service/Adapter | Template 0.2.0 | All | 실행 검증 결과는 README 참고; native 미검증 | In-repo |
 | Native plugin | Godot Play Game Services | v3.4.0 | Android | 4.7.2 Debug/Release export·기기 로딩 통과; 계정 기능 미검증 | Installed, export opt-in |
 | External native SDK | Google Play Games Services v2 | 21.0.0 | Android | 위 플러그인과 Gradle 의존성 해결 확인 | Installed, export opt-in |
 | Serialization | Gson | 2.11.0 | Android | 위 플러그인의 고정 의존성 | Installed, export opt-in |
@@ -152,5 +152,5 @@ iOS는 **macOS + Xcode + 엔진과 일치하는 export templates**가 필요하�
 6. 기기/OS/툴체인/테스트 날짜와 결과를 기록하고 검증한 조합 전체를 README/BOM에 반영한다.
 7. Template 버전을 갱신한다. 자동 latest 업데이트와 조용한 엔진 업그레이드는 금지한다.
 
-Android Play Games의 export·기기 로딩 결과는 [VALIDATION.md](VALIDATION.md)에 별도로 기록했다.
+Android Play Games의 export·기기 로딩 결과는 [VALIDATION.md](template/VALIDATION.md)에 별도로 기록했다.
 Google 계정 기능 및 다른 native 후보의 호환성이 검증된 것으로 확대 해석하지 않는다.
