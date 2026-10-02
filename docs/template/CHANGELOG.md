@@ -13,6 +13,7 @@
 - 게임 초기화 hook: `config/game.cfg`의 `app/init_script`에 지정한 `RefCounted` script의
   `before_app_initialize()`를 bootstrap이 `App.initialize()` 전에 호출한다. 기본값은 빈 값이다.
 - [적용 절차](APPLYING.md): 가져오기 방법, 파일 분류, 출처 기록, 버전 업데이트.
+- 루트 `CLAUDE.md`: Claude Code가 `AGENTS.md`를 불러오도록 `@AGENTS.md` import 줄만 둔다.
 
 ### 변경
 

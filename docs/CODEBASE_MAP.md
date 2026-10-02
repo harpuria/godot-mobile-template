@@ -1,6 +1,6 @@
 # Codebase Map
 
-새 작업을 시작하는 AI Agent를 위한 코드 진입 안내서입니다. 규칙은 [AGENTS.md](../AGENTS.md), 설치·실행은 [README.md](../README.md)가 기준입니다. 아래에서 작업 대상을 찾고 관련 파일부터 읽으세요.
+새 작업을 시작하는 AI Agent를 위한 코드 진입 안내서입니다. 규칙은 [AGENTS.md](../AGENTS.md)(Claude Code는 `CLAUDE.md`의 import로 읽음), 설치·실행은 [README.md](../README.md)가 기준입니다. 아래에서 작업 대상을 찾고 관련 파일부터 읽으세요.
 
 ## 실행 흐름과 소유권
 
