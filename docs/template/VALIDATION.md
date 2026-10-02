@@ -1,5 +1,25 @@
 # Validation — 2026-09-16
 
+## 템플릿 적용성 개선 0.2.0 — 2026-10-02 Agent 검증
+
+Linux x86_64 cloud container, Godot `4.7.2.stable.official.ed1daf0bf`(공식 Linux 빌드)에서 headless로 검사했다.
+이 환경에는 `rtk`가 없어 같은 Godot 명령을 `rtk` 없이 실행했다. Desktop 검사이며 export·기기 검증은 하지 않았다.
+
+| 검사 | 실제 결과 |
+| --- | --- |
+| 변경 전 기준 headless 통합 / `--disabled` / `--native` | 103 / 13 / 13 checks, 0 failures, exit 0 |
+| Editor import | exit 0, script/parse error 없음 |
+| 최종 headless 통합 | **109 checks, 0 failures**, exit 0, `ERROR`·`SCRIPT ERROR`·`Parse Error` 로그 0줄 |
+| 최종 `--disabled` / `--native` | **13 / 13 checks, 0 failures**, exit 0 |
+| bootstrap 실제 실행(임시 `game/` hook, 확인 후 삭제) | hook이 `App.ready_for_game=false` 상태에서 호출되고 `schema_version` 설정 반영 |
+| bootstrap 실제 실행(없는 hook 경로) | `Game init script failed (File not found)` 오류 기록 후 초기화 계속 |
+| 문서 상대 링크 검사 | 깨진 링크 0 |
+
+추가된 6개 검사: 설정된 hook 실행, 빈 경로 생략, hook 1회 호출, 없는 파일·Node script·hook 메서드 없는 script 거절.
+`tools/configure.gd` 실행 시 `export_presets.cfg`에 `runnable=true`가 추가되고 `project.godot` 섹션 순서가 바뀌는 기존 차이를 확인했다.
+이번 변경 범위가 아니므로 해당 결과는 commit하지 않았다.
+`v0.2.0` 태그는 기본 브랜치 merge 후 생성해야 하며 이 검증 시점에는 없다.
+
 ## Android Play Games 네이티브 후속 검증 — 2026-10-01
 
 사용자 요청으로 v3.4.0 debug/release AAR를 연결하고 USB Android 기기에서 직접 검사했다.
@@ -38,7 +58,7 @@ Godot 4.7.2의 `has_java_method()` 계약에 맞춰 Adapter와 probe를 수정�
 최종 Debug/Release를 다시 export·설치·실행해 모두 통과했다. ConfigFile 주석도 `#`에서 `;`로 수정했다.
 
 두 AAR에는 중복 Godot 클래스가 없고 export와 동일한 dependency 파라미터의
-[Gradle graph](PGS_ANDROID_DEPENDENCIES.txt)는 games-v2 **21.0.0**, Gson **2.11.0**을 해결했다.
+[Gradle graph](../PGS_ANDROID_DEPENDENCIES.txt)는 games-v2 **21.0.0**, Gson **2.11.0**을 해결했다.
 Maven Godot 4.5.1은 도입하지 않았다. APK에는 build config가 주입되고 APP_ID는 미설정 상태로 생성하지 않았다.
 기존 설치 앱을 덮어쓰지 않고 별도 진단 패키지를 사용했다.
 
@@ -51,7 +71,7 @@ Release 진단 APK 인증서 SHA-1: `27:3D:81:5A:2C:F9:46:9E:17:DD:AF:6A:80:A2:4
 - `build/android/pgs-probe-release.apk`, SHA-256 `9668a8ff4ceb3a676b4cef5e68b20bb2f3cffbfe31c583f8264baa427f94b985`.
 
 로그: `/tmp/pgs-gradle-debug.log`, `/tmp/pgs-gradle-release.log`, `/tmp/pgs-device-debug.log`, `/tmp/pgs-device-release.log`.
-계정 설정 절차와 재현은 [ANDROID_PLAY_GAMES.md](ANDROID_PLAY_GAMES.md)에 기록했다.
+계정 설정 절차와 재현은 [ANDROID_PLAY_GAMES.md](../ANDROID_PLAY_GAMES.md)에 기록했다.
 `wizard` 스킬로 `/tmp/playgames-console-setup.sh`를 준비하고 `bash -n`으로 문법을 확인했다.
 이 wizard는 사용자 브라우저에서 Console ID/OAuth/테스터를 설정하고 Git 제외 local config에 저장하도록 안내한다.
 wizard를 실행하거나 Console을 변경하지 않았다.
@@ -105,8 +125,8 @@ iOS entitlement는 계속 false다. Team ID, 전체 Xcode, 4.7.2용 GameCenter x
 
 두 플랫폼의 실제 로그인·업적·리더보드, UI 동작, 오프라인/재개/인증 해제, release Mock 차단 및 기기 검증이 남아 있다.
 네이티브 플러그인은 저장소 지침에 따라 설치를 보류했고 플랫폼별 native gate는 false다.
-설치/검증 대상과 API 제한은 [DEPENDENCIES.md](DEPENDENCIES.md#게임-서비스-후보--2026-10-01),
-[GAME_SERVICES.md](GAME_SERVICES.md)에 기록했다.
+설치/검증 대상과 API 제한은 [DEPENDENCIES.md](../DEPENDENCIES.md#게임-서비스-후보--2026-10-01),
+[GAME_SERVICES.md](../GAME_SERVICES.md)에 기록했다.
 
 재현 명령의 `godot`가 PATH에 없다면 `/Applications/Godot.app/Contents/MacOS/Godot`를 사용한다.
 로그를 임시 위치로 지정하려면 `--log-file /tmp/game-services-test.log`를 옵션에 추가한다.

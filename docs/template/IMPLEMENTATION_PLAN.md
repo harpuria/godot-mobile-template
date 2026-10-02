@@ -28,7 +28,7 @@
 - Foundation/Common/Service/Mock/Demo/문서 구현 완료.
 - Phase 4 native integration은 호환성/SDK manifest/기기 검증이 미완료되어 보류.
 - Phase 5 Desktop 검증 완료: 67 checks, 0 failures 및 실제 렌더링 확인.
-- Android/iOS export를 실제 시도했으며 SDK/template 부재로 실패. 완료 조건은 docs/VALIDATION.md 참고.
+- Android/iOS export를 실제 시도했으며 SDK/template 부재로 실패. 완료 조건은 docs/template/VALIDATION.md 참고.
 - 다음 필수 작업: JDK17/Android toolchain/4.7.2 templates 및 Xcode 환경 준비 후 양 플랫폼 export와 실기기 검증.
 
 ## 게임 서비스 확장 — 2026-10-01
@@ -37,7 +37,7 @@
 - 완료: 공통 Service/기본 Adapter/Debug Mock, 고정 upstream API 대상 Android/iOS 연결 코드,
   config의 플랫폼 ID 매핑과 feature/native gate, 데모 버튼, 가짜 SDK 계약 검사와 unavailable 검사.
 - SDK 미설치 상태이며 각 native gate는 false다. 네이티브 호환성 Verified로 표시하지 않는다.
-- Desktop 검사·실제 렌더러 및 기본 export 결과는 `docs/VALIDATION.md`의 2026-10-01 기록이 최신이다.
+- Desktop 검사·실제 렌더러 및 기본 export 결과는 `docs/template/VALIDATION.md`의 2026-10-01 기록이 최신이다.
   9월의 toolchain 부재 기록은 당시 환경을 설명하며 현재 Android export 불가를 의미하지 않는다.
 - 남은 순서: `docs/DEPENDENCIES.md` 고정 후보의 빌드/라이선스/ABI → Android Gradle export와 테스트 계정 기기 검사 →
   iOS 4.7.2 xcframework/Xcode/entitlement export와 기기 검사. 각 gate를 검증용 로컬 빌드에서 열고 결과를 기록한다.
@@ -51,3 +51,12 @@
 - JNI has_java_method 계약 수정과 local config export 주입을 구현했다.
 - 실제 Google 계정 기능은 Console Game ID/OAuth/테스터/업적/리더보드 준비 후 검증한다.
 - 배포 초기화 gate와 iOS native 상태는 변경하지 않았다. 재현은 docs/ANDROID_PLAY_GAMES.md 참고.
+
+## 템플릿 적용성 개선 0.2.0 — 2026-10-02
+
+- 배경: game-dev-setup 스킬이 이 템플릿을 Godot Android/iOS 기본 starter로 지정한다. 적용 시 충돌·누락을 줄인다.
+- 템플릿 자체 계획·검증 기록을 `docs/template/`으로 옮겨 `docs/IMPLEMENTATION_PLAN.md`, `docs/VALIDATION.md`를 게임 문서용으로 비웠다.
+- 버전을 0.2.0으로 올리고 `docs/template/CHANGELOG.md`를 추가했다. 태그는 기본 브랜치 merge 후 merge commit에 `v0.2.0`으로 붙인다.
+- 가져오기·파일 분류·출처 기록·버전 업데이트 절차를 `docs/template/APPLYING.md`로 문서화했다.
+- `app/init_script` 게임 초기화 hook을 추가해 저장 schema·migration 등록 시 `scenes/bootstrap.gd`를 고치지 않게 했다.
+- 후속 후보: release export의 데모·진단 자동 제외, Commands의 `rtk` 비설치 환경 안내, 게임 전용 테스트 진입점.

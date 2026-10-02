@@ -129,6 +129,6 @@ Adapter 잠금을 유지한다. 그 콜백은 성공으로 전달하지 않고 �
 
 `tests/integration.tscn`은 Mock과 가짜 SDK를 이용해 API 매핑, 오류, 로그인 gate, 중복 요청,
 타임아웃/늦은 콜백, 데모 버튼을 검사한다. `--disabled`, `--native`도 실행한다.
-실제 결과와 export/device 한계는 [VALIDATION.md](VALIDATION.md)에 기록한다.
+실제 결과와 export/device 한계는 [VALIDATION.md](template/VALIDATION.md)에 기록한다.
 Android 네이티브 로딩용 `pgs_probe` feature는 bootstrap을 별도 진단 장면으로 연결한다.
 다음 단계는 Play Console 설정 후 등록한 테스트 계정으로 로그인·점수·업적·화면 동작을 확인하는 것이다.

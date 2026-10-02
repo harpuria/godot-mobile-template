@@ -3,6 +3,7 @@
 ## Start here
 
 - At the start of a new task, read [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md) for entry points, ownership, task-to-file mappings and validation routes. Follow its task-specific document links before editing the relevant area.
+- When applying this template to a new or existing game, or updating a derived game to a newer template version, follow [docs/template/APPLYING.md](docs/template/APPLYING.md).
 
 ## Commands
 
@@ -31,13 +32,14 @@
 - Mock purchases must never succeed in release builds.
 - For native changes, read `docs/DEPENDENCIES.md` and perform Android/iOS export and device checks before claiming Verified.
 - Run the affected integration scenarios in `tests/integration.tscn`; `--disabled` and `--native` cover unavailable initialization paths.
-- Record actual validation and remaining limits in `docs/VALIDATION.md`. Do not claim device verification from Desktop tests.
+- Record actual validation and remaining limits of template features in `docs/template/VALIDATION.md`; a derived game records its own validation in its game documents. Do not claim device verification from Desktop tests.
 - Keep production IDs, signing material and secrets outside Git.
 
 ## Code and documentation
 
 - Use GDScript, simple explicit APIs and typed public boundaries.
 - Add a short Korean `##` class description at the top of each `.gd` file and Korean doc comments for major methods.
-- Keep game rules and data schemas in `game/`; adapters must not grant game-specific rewards.
-- Keep generated design/plan/validation documents under `docs/` and update README entry points when behavior changes.
+- Keep game rules and data schemas in `game/`; register save schema and migrations through the `app/init_script` hook instead of editing `scenes/bootstrap.gd`. Adapters must not grant game-specific rewards.
+- Keep generated design/plan/validation documents under `docs/` and update README entry points when behavior changes. `docs/template/` holds template history and procedures; do not use it for game plans or design.
+- When changing the template version, update `GameConfig.TEMPLATE_VERSION`, README and `docs/template/CHANGELOG.md` together.
 - Update `docs/CODEBASE_MAP.md` in the same change when moving files or changing entry flows, public access APIs, configuration propagation or validation commands.

@@ -12,6 +12,19 @@
 
 > Game code must never directly depend on a mobile platform plugin.
 
-게임별 schema_version과 migration을 bootstrap에서 `App.initialize()` 전에 등록하세요.
+게임별 schema_version과 migration은 이 디렉터리의 초기화 script에서 등록합니다.
+`config/game.cfg`의 `app/init_script`에 경로를 지정하면 bootstrap이 `App.initialize()` 전에 호출합니다.
+
+```gdscript
+# game/game_init.gd — init_script="res://game/game_init.gd"
+extends RefCounted
+
+func before_app_initialize() -> void:
+	SaveManager.schema_version = 2
+	SaveManager.register_migration(1, func(old: Dictionary) -> Dictionary:
+		old["new_field"] = 0
+		return old)
+```
+
 게임은 transaction_id 기준 중복 지급 방지와 영구 entitlement 정책을 정의해야 합니다.
 Mock transaction은 실제 결제 증거가 아닙니다. 데모 자료는 scenes/와 assets/demo/에 있습니다.

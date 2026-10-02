@@ -2,7 +2,7 @@
 
 2026-10-01: Godot **4.7.2**, Play Games plugin **v3.4.0**, Google SDK **21.0.0**.
 SM_F966N / Android 16에서 Debug·Release AAR 로딩을 확인했다. Google 계정 기능은 Console 설정 대기다.
-버전·라이선스·체크섬은 [DEPENDENCIES.md](DEPENDENCIES.md), 실제 검사 결과는 [VALIDATION.md](VALIDATION.md)를 따른다.
+버전·라이선스·체크섬은 [DEPENDENCIES.md](DEPENDENCIES.md), 실제 검사 결과는 [VALIDATION.md](template/VALIDATION.md)를 따른다.
 
 ## Gradle export와 진단 앱
 
@@ -41,7 +41,7 @@ App의 Android adapter 선택, unavailable 실패, 가짜 인증 방지, disable
 2. Android credential을 만들고 설치할 APK의 **패키지명과 서명 SHA-1**을 정확히 연결한다.
    테스트 debug 인증서, upload 인증서, Play App Signing 인증서는 서로 다를 수 있다.
    현재 진단 패키지는 `com.example.mobiletemplate.pgsprobe`, 별도 release 진단 패키지는 `com.example.mobiletemplate.pgsprobe.release`다.
-   두 APK의 실제 인증서 SHA-1은 [검증 기록](VALIDATION.md)에 각각 기록했다.
+   두 APK의 실제 인증서 SHA-1은 [검증 기록](template/VALIDATION.md)에 각각 기록했다.
 3. 일반 업적 하나와 리더보드 하나를 만들고 각 ID를 복사한다. 증분 업적은 현재 API 범위 밖이다.
 4. Testers에 휴대폰의 Google 계정을 등록한다. 게임을 만든 계정도 테스터 등록이 필요하다.
 
