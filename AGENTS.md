@@ -7,8 +7,8 @@
 
 ## Commands
 
-- Shell commands must be prefixed with `rtk`; use `rtk proxy <command>` for unfiltered output.
-- In command chains, prefix every segment. Raw commands are allowed only for debugging.
+- Run commands from the repository root. Validation commands are listed in [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md#변경-후-검증).
+- If `godot` is not on PATH, use the Godot 4.7.2 executable path instead (macOS default: `/Applications/Godot.app/Contents/MacOS/Godot`).
 
 ## Boundaries
 

@@ -59,4 +59,4 @@
 - 버전을 0.2.0으로 올리고 `docs/template/CHANGELOG.md`를 추가했다. 태그는 기본 브랜치 merge 후 merge commit에 `v0.2.0`으로 붙인다.
 - 가져오기·파일 분류·출처 기록·버전 업데이트 절차를 `docs/template/APPLYING.md`로 문서화했다.
 - `app/init_script` 게임 초기화 hook을 추가해 저장 schema·migration 등록 시 `scenes/bootstrap.gd`를 고치지 않게 했다.
-- 후속 후보: release export의 데모·진단 자동 제외, Commands의 `rtk` 비설치 환경 안내, 게임 전용 테스트 진입점.
+- 후속 후보: release export의 데모·진단 자동 제외, 게임 전용 테스트 진입점.

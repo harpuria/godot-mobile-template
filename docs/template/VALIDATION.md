@@ -3,7 +3,7 @@
 ## 템플릿 적용성 개선 0.2.0 — 2026-10-02 Agent 검증
 
 Linux x86_64 cloud container, Godot `4.7.2.stable.official.ed1daf0bf`(공식 Linux 빌드)에서 headless로 검사했다.
-이 환경에는 `rtk`가 없어 같은 Godot 명령을 `rtk` 없이 실행했다. Desktop 검사이며 export·기기 검증은 하지 않았다.
+문서의 검증 명령을 그대로 실행했다. Desktop 검사이며 export·기기 검증은 하지 않았다.
 
 | 검사 | 실제 결과 |
 | --- | --- |
@@ -216,15 +216,15 @@ threaded PackedScene 로드 경로에서 종료 RefCounted 경고가 나타났�
 ## 재현
 
 ```bash
-rtk godot --headless --path . --editor --import --quit
-rtk godot --headless --path . --scene res://tests/integration.tscn
-rtk godot --headless --path . --scene res://tests/integration.tscn -- --disabled
-rtk godot --headless --path . --scene res://tests/integration.tscn -- --native
+godot --headless --path . --editor --import --quit
+godot --headless --path . --scene res://tests/integration.tscn
+godot --headless --path . --scene res://tests/integration.tscn -- --disabled
+godot --headless --path . --scene res://tests/integration.tscn -- --native
 ```
 
 필요 시 GUI 렌더링과 `/tmp` 캡처:
 ```bash
-rtk godot --path . --scene res://tests/integration.tscn -- --capture
+godot --path . --scene res://tests/integration.tscn -- --capture
 ```
 
 통합 검사는 고유 임시 저장 경로를 사용하고 정상 완료 시 정리한다.

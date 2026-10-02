@@ -57,7 +57,7 @@ project.godot
 - **로컬 빌드 환경:** JDK/SDK 경로는 Godot Editor Settings, signing은 로컬 export 자격 증명에서 관리합니다. `config/*.local.*` 파일을 만드는 것만으로 설정이 자동 합쳐지지는 않습니다.
 
 ```bash
-rtk proxy godot --headless --path . --script res://tools/configure.gd
+godot --headless --path . --script res://tools/configure.gd
 ```
 
 `godot`가 PATH에 없으면 실행 파일 경로로 대체합니다. macOS 기본 설치 경로는 `/Applications/Godot.app/Contents/MacOS/Godot`입니다.
@@ -82,10 +82,10 @@ rtk proxy godot --headless --path . --script res://tools/configure.gd
 | 문서만 변경 | 코드·경로·문서 링크 대조; 런타임 재검사 불필요 |
 
 ```bash
-rtk proxy godot --headless --path . --editor --import --quit
-rtk proxy godot --headless --path . --scene res://tests/integration.tscn
-rtk proxy godot --headless --path . --scene res://tests/integration.tscn -- --disabled
-rtk proxy godot --headless --path . --scene res://tests/integration.tscn -- --native
+godot --headless --path . --editor --import --quit
+godot --headless --path . --scene res://tests/integration.tscn
+godot --headless --path . --scene res://tests/integration.tscn -- --disabled
+godot --headless --path . --scene res://tests/integration.tscn -- --native
 ```
 
 기본 통합 검사는 기본 상품 구성을 사용하는 Desktop debug Mock 시나리오입니다. 상품·설정을 게임에 맞춰 바꿨다면 테스트 입력도 검토하세요. 테스트 저장은 임시 경로에 격리됩니다. 종료 코드, `INTEGRATION` 완료 요약의 실패 0건, script/parse error 부재를 함께 확인합니다. `--native`는 SDK 미설치 실패 경로를 검사하며 실제 스토어 테스트가 아닙니다.

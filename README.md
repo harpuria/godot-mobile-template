@@ -57,7 +57,7 @@ orientation="portrait"
 4. 이름과 방향을 적용한다. **Mac에서는 프로젝트 폴더에서 터미널을 열고** 아래 명령을 실행한다.
 
 ```bash
-rtk proxy /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/configure.gd
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --script res://tools/configure.gd
 ```
 
 명령이 어렵다면 AI에게 **“config/game.cfg의 설정을 프로젝트에 반영해 줘”**라고 요청해도 된다.

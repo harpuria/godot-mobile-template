@@ -16,8 +16,8 @@
 저장소가 private이면 인증된 접근이 필요하다. 접근할 수 없으면 적용하지 말고 사용할 버전과 차단 사유만 기록한다.
 
 ```bash
-rtk git clone --depth 1 --branch v0.2.0 https://github.com/harpuria/godot-mobile-template /tmp/godot-mobile-template
-rtk git -C /tmp/godot-mobile-template rev-parse HEAD
+git clone --depth 1 --branch v0.2.0 https://github.com/harpuria/godot-mobile-template /tmp/godot-mobile-template
+git -C /tmp/godot-mobile-template rev-parse HEAD
 ```
 
 `v0.2.0` 대신 원하는 태그를 지정한다. 태그가 아직 없으면 `--branch main`으로 받고 `rev-parse` 결과를 기록한다.
@@ -27,13 +27,13 @@ rtk git -C /tmp/godot-mobile-template rev-parse HEAD
 **새 프로젝트(빈 폴더):** `.git/`, `.godot/`을 제외하고 전부 복사한 뒤, 사용자가 동의하면 Git을 초기화한다.
 
 ```bash
-rtk rsync -a --exclude .git --exclude .godot /tmp/godot-mobile-template/ ./
+rsync -a --exclude .git --exclude .godot /tmp/godot-mobile-template/ ./
 ```
 
 **기존 저장소:** 기존 파일을 덮어쓰지 않도록 복사한다. 이름이 겹친 파일은 아래 표대로 직접 병합한다.
 
 ```bash
-rtk rsync -a --ignore-existing --exclude .git --exclude .godot /tmp/godot-mobile-template/ ./
+rsync -a --ignore-existing --exclude .git --exclude .godot /tmp/godot-mobile-template/ ./
 ```
 
 기존 게임이라면 템플릿 전체 도입이 자동 migration은 아니다. 요청 범위에 필요한 Service·관리자만 가져오고 기존 구조를 유지한다.
@@ -67,7 +67,7 @@ rtk rsync -a --ignore-existing --exclude .git --exclude .godot /tmp/godot-mobile
 4. 설정을 `project.godot`와 `export_presets.cfg`에 반영하고 diff를 확인한다.
 
 ```bash
-rtk proxy godot --headless --path . --script res://tools/configure.gd
+godot --headless --path . --script res://tools/configure.gd
 ```
 
 실제 게임 서비스 ID·signing 정보는 Git에 넣지 않는다. 절차는 [DEVELOPMENT.md](../DEVELOPMENT.md#configuration)와 [ANDROID_PLAY_GAMES.md](../ANDROID_PLAY_GAMES.md)를 따른다.
@@ -86,10 +86,10 @@ Release 전에는 데모 장면·음원을 export에서 제외해야 한다. 현
 ## 6. 검증
 
 ```bash
-rtk proxy godot --headless --path . --editor --import --quit
-rtk proxy godot --headless --path . --scene res://tests/integration.tscn
-rtk proxy godot --headless --path . --scene res://tests/integration.tscn -- --disabled
-rtk proxy godot --headless --path . --scene res://tests/integration.tscn -- --native
+godot --headless --path . --editor --import --quit
+godot --headless --path . --scene res://tests/integration.tscn
+godot --headless --path . --scene res://tests/integration.tscn -- --disabled
+godot --headless --path . --scene res://tests/integration.tscn -- --native
 ```
 
 종료 코드 0, `INTEGRATION` 요약의 실패 0건, `SCRIPT ERROR`·`Parse Error` 부재를 확인한다.
@@ -103,8 +103,8 @@ F5로 bootstrap부터 실행해 `main_scene`이 열리고 init script 오류가 
 2. 템플릿 clone에서 두 버전의 프레임워크 변경만 확인한다.
 
 ```bash
-rtk git -C /tmp/godot-mobile-template fetch --tags
-rtk git -C /tmp/godot-mobile-template diff v0.2.0 v0.3.0 -- autoload core services ui scenes tests tools addons project.godot export_presets.cfg docs
+git -C /tmp/godot-mobile-template fetch --tags
+git -C /tmp/godot-mobile-template diff v0.2.0 v0.3.0 -- autoload core services ui scenes tests tools addons project.godot export_presets.cfg docs
 ```
 
 3. 프레임워크 경로의 변경을 게임에 적용한다. `game/`과 게임이 바꾼 `config/` 값, 게임 문서는 덮어쓰지 않는다.

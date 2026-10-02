@@ -17,13 +17,13 @@ SM_F966N / Android 16에서 Debug·Release AAR 로딩을 확인했다. Google �
 4. Debug export 후 USB 디버깅을 허용한 기기에 설치한다. 아래 `godot`, `adb`는 실제 설치 경로로 대체한다.
 
 ```bash
-rtk proxy godot --headless --path . --export-debug 'Android PGS Probe' build/android/pgs-probe-debug.apk
-rtk proxy adb install -r build/android/pgs-probe-debug.apk
-rtk proxy adb shell am start -W -n com.example.mobiletemplate.pgsprobe/com.godot.game.GodotAppLauncher
-rtk proxy adb shell pidof com.example.mobiletemplate.pgsprobe
+godot --headless --path . --export-debug 'Android PGS Probe' build/android/pgs-probe-debug.apk
+adb install -r build/android/pgs-probe-debug.apk
+adb shell am start -W -n com.example.mobiletemplate.pgsprobe/com.godot.game.GodotAppLauncher
+adb shell pidof com.example.mobiletemplate.pgsprobe
 ```
 
-확인한 PID만 사용해 `rtk proxy adb logcat -d --pid=<PID>`를 읽는다.
+확인한 PID만 사용해 `adb logcat -d --pid=<PID>`를 읽는다.
 Game ID 미설정 상태는 Debug `21 checks, 0 failures`, Release `23 checks, 0 failures`가 정상이다.
 Release에는 서명 설정이 필요하며 signing material은 Git에 두지 않는다.
 이번 release 검사는 테스트용 debug 인증서로 서명한 **release 엔진**이며 스토어 배포 서명 검사가 아니다.

@@ -20,7 +20,7 @@
 - 모바일 export: **4.7.2** export templates. 다른 버전과 혼용하지 않습니다.
 - Android 및 iOS별 도구는 아래 Setup 절을 따릅니다.
 - 명령 예시는 `godot`가 PATH에 있는 환경을 기준으로 합니다. macOS 앱은 `/Applications/Godot.app/Contents/MacOS/Godot`로 대체할 수 있습니다.
-- 저장소 shell 작업은 RTK를 사용합니다. 테스트 framework, Python package, 외부 Godot addon 설치는 필요하지 않습니다.
+- 명령은 저장소 루트에서 실행합니다. 테스트 framework, Python package, 외부 Godot addon 설치는 필요하지 않습니다.
 
 ## Technology Stack
 
@@ -126,10 +126,10 @@ docs/                   설계, BOM, 개발 안내
 5. 화면을 아래로 스크롤하면 구매 복원, 분석, 리뷰, 전환, 설정을 확인할 수 있습니다.
 
 ```bash
-rtk godot --headless --path . --editor --import --quit
-rtk godot --headless --path . --scene res://tests/integration.tscn
-rtk godot --headless --path . --scene res://tests/integration.tscn -- --disabled
-rtk godot --headless --path . --scene res://tests/integration.tscn -- --native
+godot --headless --path . --editor --import --quit
+godot --headless --path . --scene res://tests/integration.tscn
+godot --headless --path . --scene res://tests/integration.tscn -- --disabled
+godot --headless --path . --scene res://tests/integration.tscn -- --native
 ```
 
 통합 검사는 고유 임시 디렉터리에 저장하여 개발자의 `user://save.json`을 변경하지 않습니다.
@@ -179,7 +179,7 @@ orientation: `sensor`, `portrait`, `landscape`, `sensor_portrait`, `sensor_lands
 템플릿 기본은 sensor이며 특정 방향을 고정하지 않습니다. 실제 launch orientation도 맞추려면 동기화가 필요합니다.
 
 ```bash
-rtk godot --headless --path . --script res://tools/configure.gd
+godot --headless --path . --script res://tools/configure.gd
 ```
 
 이 도구는 이름·버전·orientation을 `project.godot`에, package/bundle/version을 `export_presets.cfg`에 반영합니다.
@@ -352,11 +352,11 @@ AudioManager는 BGM 한 개, SFX/UI 최대 16개를 재생합니다. 반복은 A
 ## Export
 
 ```bash
-rtk mkdir -p build/android build/ios
-rtk godot --headless --path . --script res://tools/configure.gd
-rtk godot --headless --path . --export-debug Android build/android/game.apk
-rtk godot --headless --path . --export-release Android build/android/game.apk
-rtk godot --headless --path . --export-debug iOS build/ios/game.zip
+mkdir -p build/android build/ios
+godot --headless --path . --script res://tools/configure.gd
+godot --headless --path . --export-debug Android build/android/game.apk
+godot --headless --path . --export-release Android build/android/game.apk
+godot --headless --path . --export-debug iOS build/ios/game.zip
 ```
 
 Android 명령은 기본 APK preset 기준입니다. Play Store용은 Gradle을 켜고 export format을 AAB로 바꾼 뒤 `.aab`로 export합니다.
