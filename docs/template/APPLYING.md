@@ -51,7 +51,8 @@ rsync -a --ignore-existing --exclude .git --exclude .godot /tmp/godot-mobile-tem
 | `project.godot`, `export_presets.cfg` | 유지 (기존 Godot 프로젝트면 병합) | Autoload·렌더러·export 설정. 값은 `tools/configure.gd`로 갱신 |
 | `config/game.cfg`, `config/products.json` | 게임 값으로 수정 | 아래 4단계 |
 | `game/` | 게임 코드 작성 위치 | `game/README.md`의 API 안내 유지 |
-| `AGENTS.md` | 게임 지침의 기반으로 병합 | Boundaries·Dependencies·Commands 규칙 유지, 게임 결정 추가 |
+| `AGENTS.md` | 게임 지침의 기반으로 병합 | Boundaries·Dependencies·Commands 규칙 유지, 게임 결정 추가. 유일한 지침 원본 |
+| `CLAUDE.md` | 유지 (기존 파일이면 `@AGENTS.md` 줄만 추가) | Claude Code가 AGENTS.md를 불러오는 import 줄. 지침을 여기에 중복하지 않는다 |
 | `README.md` | 게임 소개로 교체 가능 | 개발 문서 링크와 `Dependency BOM` 섹션은 유지(AGENTS가 참조) |
 | `docs/ARCHITECTURE.md`, `docs/CODEBASE_MAP.md`, `docs/DEVELOPMENT.md`, `docs/DEPENDENCIES.md`, `docs/GAME_SERVICES.md`, `docs/ANDROID_PLAY_GAMES.md`, `docs/PGS_ANDROID_DEPENDENCIES.txt` | 유지 | 프레임워크 계약·의존성 근거 |
 | `docs/template/` | 유지 (읽기 전용 참고) | 출처 버전의 변경·계획·검증 기록. 게임 문서를 여기에 쓰지 않는다 |
