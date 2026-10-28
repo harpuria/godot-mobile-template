@@ -1,4 +1,68 @@
-# Validation — 2026-09-16
+# Validation
+
+## Android 3건 통합 0.3.0 — 2026-10-21 Agent 검증
+
+Godot는 `4.7.2.stable.official.ed1daf0bf`를 유지했다.
+GPGS v3.4.0 AAR + Google games-v2 22.1.0 / Gson 2.14.0,
+GooglePlayBilling 3.3.0 / Billing 9.1.0,
+Poing AdMob Android 5.1.0 / Next-Gen Ads 1.4.0 / UMP 4.0.0을 함께 넣어 검사했다.
+Android 신규 결제·광고 AAR 여섯 개는 공식 release asset digest와 일치하며 엔진 클래스 중복이 없다.
+
+| 검사 | 실제 결과 |
+| --- | --- |
+| 최종 editor import | 성공, script/parse error 없음 |
+| Desktop 기본 통합·가짜 SDK 계약 | **163 checks, 0 failures**, exit 0 |
+| 전체 기능 비활성화 (`--disabled`) | **13 checks, 0 failures**, exit 0 |
+| SDK 없는 native (`--native`) | **13 checks, 0 failures**, exit 0 |
+| 세 SDK 동시 Debug export·설치·실행 | 성공; **13 checks, 0 failures**, debug=true |
+| 세 SDK 동시 Release export·설치·실행 | 성공; **16 checks, 0 failures**, debug=false |
+| Release Mock 직접 호출 | 구매·복원 모두 `mock_not_allowed`; 지연 성공 없음 |
+| 실제 Billing SDK 연결·상품 조회 | Debug/Release 모두 응답 도착, **0 products**. 미등록 예시 상품이므로 실제 상품·가격 검증 아님 |
+| 실제 UMP 갱신 | Debug/Release 모두 unknown → ads_allowed, 이후 광고 초기화·로드 |
+| 실제 Google 샘플 광고 | Debug/Release 보상형·전면 광고 로드 확인 |
+| 실제 전면 광고 표시·종료 | Debug/Release 샘플 광고 화면 확인, `NATIVE_INTERSTITIAL_CLOSED probe_break` |
+| 실제 보상형 표시·보상 | Debug/Release 샘플 광고 화면 확인, `NATIVE_REWARD probe_reward`; Release 화면에 Test Ad·리워드 지급됨 표시 |
+| APK 설정·필터 | 허용한 build cfg 포함; local 원본·허용하지 않은 sentinel·docs/tests 제외; 기본 native gate false 유지 |
+| 실제 스토어 구매 / GPGS 계정 | 미실행. 실제 상품·Play Console·서버 검증·Game ID/OAuth/테스터 설정 필요 |
+| iOS export·기기 | 이번 Android 범위에서 수행하지 않음 |
+
+기기: **Samsung SM-F966N, Android 16 / API 36, arm64-v8a**.
+호스트: **macOS 26.6.2, arm64**. 프로젝트·편집기·Gradle cache는 `/tmp/android-services-validation/`에 격리했다.
+JDK는 임시 Temurin **17.0.20.1+1**이며 전역 Java/Godot 설정을 변경하지 않았다.
+Gradle **8.11.1**, AGP **8.6.1**, Kotlin Gradle plugin **2.1.21**, compile/target SDK **36**,
+Build-Tools **36.1.0**, min SDK **24**, 4.7.2의 prebuilt Godot AAR를 사용했다.
+Billing에 의해 Kotlin runtime **2.2.10**이 해결됐고 Maven Godot 4.5.1은 도입되지 않았다.
+전체 간접 의존성은 [실제 standardRelease graph](../ANDROID_SERVICES_DEPENDENCIES.txt)를 따른다.
+
+가짜 SDK 검사는 실제 JNI 이름·신호·응답 필드 매핑, 명시적 구매 검증 단계,
+pending→purchased, 취소·offer 선택, ack/consume 실패·재시도, 잘못된 토큰·중복 콜백,
+restore·재연결·timeout/늦은 콜백, 동의 전 광고 초기화 차단,
+광고 UID 매핑·보상 중복 방지·보상 없이 닫힘·개인정보 선택/철회를 검사했다.
+서버 검증 또는 실제 스토어 거래를 수행한 것으로 해석하지 않는다.
+
+최초 Release 진단에서 App의 Mock 선택 차단과 별개로 MockBillingAdapter 직접 호출에 자체 guard가 없는 것을 발견했다.
+구매·복원 메서드에 Release guard를 추가하고 실제 Release에서 지연 콜백까지 기다려 두 경로 모두 차단됨을 확인했다.
+
+Release 진단은 **테스트 인증서로 서명한 release 엔진**이다. 스토어 서명·심사 검증이 아니다.
+테스트 인증서 SHA-1: `63:93:FD:35:FD:63:3E:72:AF:14:11:45:61:95:E6:06:E2:E4:08:37`.
+별도 패키지 `com.example.mobiletemplate.androidservicesprobe.debug` / `.release`를 사용했다.
+기존 게임 패키지·저장·운영 인증서를 변경하지 않았다.
+APK의 merged manifest에서 INTERNET, ACCESS_NETWORK_STATE, Billing, AD_ID,
+SDK가 추가한 READ_BASIC_PHONE_STATE/WAKE_LOCK/FOREGROUND_SERVICE 선언을 확인했다.
+실제 게임 배포 시 해당 게임의 최종 manifest와 데이터 선언을 다시 확인해야 한다.
+
+산출물(모두 Git 제외):
+
+- `build/android/android-services-debug.apk`, SHA-256 `64bfe55b65ef9a5da2c73ffc50e4d0b84413b6ad29dcdf21b9e500cd72a6620b`.
+- `build/android/android-services-release.apk`, SHA-256 `0bd83de8ac2759bcae236c64d06074a69edb4a1f6b87fbb7fe174f78001b8d35`.
+- `build/android/android-services-device-debug-final-godot.log`, `android-services-device-release-godot.log`.
+- `build/android/android-services-release-interstitial.png`, `android-services-release-reward.png`.
+- import / Desktop / export 원본 로그는 `/tmp/android-services-final-import.log`, `/tmp/android-services-test-*.log`, `/tmp/android-services-*-export.log`.
+
+남은 실제 검증: Play Console 테스트 상품·구매/취소/pending/복원/구독과 서버 검증·지급 저장,
+GPGS 로그인·서버 점수·업적, 실제 AdMob ID의 required 동의 UI·거부·개인정보 선택 변경,
+최소 OS·다른 기기·전체 lifecycle·스토어 signing 조합.
+운영용 검증 gate는 false로 유지했다. 0.3.0 태그/외부 배포는 이번 작업에서 생성하지 않았다.
 
 ## 템플릿 적용성 개선 0.2.0 — 2026-10-02 Agent 검증
 

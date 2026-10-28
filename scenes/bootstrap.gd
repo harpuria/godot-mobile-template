@@ -4,6 +4,9 @@ extends Node
 const INIT_METHOD := "before_app_initialize"
 
 func _ready() -> void:
+	if OS.has_feature("android_services_probe"):
+		SceneManager.change_scene("res://scenes/android_services_probe.tscn", false)
+		return
 	if OS.has_feature("pgs_probe"):
 		SceneManager.change_scene("res://scenes/android_game_services_probe.tscn", false)
 		return

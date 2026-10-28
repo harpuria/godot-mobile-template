@@ -25,13 +25,13 @@ func initialize() -> void:
 	var mock := GameConfig.use_mocks()
 	privacy = PrivacyService.new()
 	add_child(privacy)
-	privacy.initialize(GameConfig.enabled("privacy"), MockPrivacyAdapter.new() if mock and GameConfig.enabled("privacy") else PrivacyAdapter.new())
+	privacy.initialize(GameConfig.enabled("privacy"), _privacy_adapter(mock))
 	ads = AdsService.new()
 	add_child(ads)
-	ads.initialize(GameConfig.enabled("ads"), MockAdsAdapter.new() if mock and GameConfig.enabled("ads") else AdsAdapter.new(), privacy)
+	ads.initialize(GameConfig.enabled("ads"), _ads_adapter(mock), privacy)
 	billing = BillingService.new()
 	add_child(billing)
-	billing.initialize(GameConfig.enabled("iap"), MockBillingAdapter.new() if mock and GameConfig.enabled("iap") else BillingAdapter.new())
+	billing.initialize(GameConfig.enabled("iap"), _billing_adapter(mock))
 	analytics = Analytics.new()
 	add_child(analytics)
 	analytics.initialize(GameConfig.enabled("analytics") and mock, MockAnalyticsAdapter.new() if mock and GameConfig.enabled("analytics") else AnalyticsAdapter.new(), privacy)
@@ -48,6 +48,39 @@ func initialize() -> void:
 	ready_for_game = true
 	AppLogger.info("App", "Platform=%s Mock=%s" % [MobilePlatform.current(), mock])
 	initialized.emit()
+
+## 기능별 override와 검증 gate가 모두 열린 Android에서만 네이티브를 선택한다.
+func _android_native(section: String) -> bool:
+	if MobilePlatform.current() != "Android":
+		return false
+	var mode := str(GameConfig.value(section, "android_mode", "inherit"))
+	if mode == "inherit":
+		mode = str(GameConfig.value("services", "mode", "native"))
+	return mode == "native" and bool(GameConfig.value(section, "android_native_verified", false))
+
+func _section_mock(section: String, mock: bool) -> bool:
+	return mock and (MobilePlatform.current() != "Android" or GameConfig.value(section, "android_mode", "inherit") == "inherit")
+
+func _billing_adapter(mock: bool) -> BillingAdapter:
+	if not GameConfig.enabled("iap"):
+		return BillingAdapter.new()
+	if _android_native("billing"):
+		return AndroidBillingAdapter.new()
+	return MockBillingAdapter.new() if _section_mock("billing", mock) else BillingAdapter.new()
+
+func _ads_adapter(mock: bool) -> AdsAdapter:
+	if not GameConfig.enabled("ads"):
+		return AdsAdapter.new()
+	if _android_native("ads"):
+		return AndroidAdmobAdapter.new()
+	return MockAdsAdapter.new() if _section_mock("ads", mock) else AdsAdapter.new()
+
+func _privacy_adapter(mock: bool) -> PrivacyAdapter:
+	if not GameConfig.enabled("privacy"):
+		return PrivacyAdapter.new()
+	if GameConfig.enabled("ads") and _android_native("ads"):
+		return AndroidAdmobPrivacyAdapter.new()
+	return MockPrivacyAdapter.new() if _section_mock("ads", mock) else PrivacyAdapter.new()
 
 ## 기능 off와 미검증 native 구성은 SDK를 초기화하지 않는다.
 func _game_services_adapter(mock: bool) -> GameServicesAdapter:

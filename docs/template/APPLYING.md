@@ -44,6 +44,7 @@ rsync -a --ignore-existing --exclude .git --exclude .godot /tmp/godot-mobile-tem
 | --- | --- | --- |
 | `autoload/`, `core/`, `services/`, `ui/`, `tools/` | 유지 | 프레임워크. 게임 변경은 `game/`에서 한다 |
 | `addons/play_game_services/` | 유지 | Android Play Games AAR, export opt-in. 기본 export에는 SDK 미포함 |
+| `addons/android_services/` | 유지 | Android 결제·AdMob AAR, 라이선스·해시와 export opt-in. 기본 SDK 포함/gate는 false |
 | `scenes/bootstrap.*` | 유지, 수정하지 않음 | 진입점. 게임 초기화는 `app/init_script` hook 사용 |
 | `scenes/main.tscn`, `scenes/demo.gd`, `scenes/transition_demo.*`, `assets/demo/` | 유지 | 통합 검사가 사용한다. 삭제하면 `tests/integration.tscn`이 실패한다 |
 | `scenes/android_game_services_probe.*` | 유지 | `pgs_probe` export feature 전용 기기 진단 |

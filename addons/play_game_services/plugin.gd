@@ -34,7 +34,7 @@ class PlayGamesExport extends EditorExportPlugin:
 	func _get_android_dependencies(_platform: EditorExportPlatform, _debug: bool) -> PackedStringArray:
 		if not get_option("game_services/include_sdk"):
 			return []
-		return ["com.google.code.gson:gson:2.11.0", "com.google.android.gms:play-services-games-v2:21.0.0"]
+		return ["com.google.code.gson:gson:2.14.0", "com.google.android.gms:play-services-games-v2:22.1.0"]
 
 	## Game ID가 없으면 APP_ID를 만들지 않는다. 잘못된 운영 ID를 생성하지 않는다.
 	func _get_android_manifest_application_element_contents(_platform: EditorExportPlatform, _debug: bool) -> String:

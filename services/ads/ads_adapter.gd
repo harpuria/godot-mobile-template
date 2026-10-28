@@ -7,6 +7,10 @@ signal rewarded_failed(placement_id: String, reason: String)
 signal interstitial_closed(placement_id: String)
 signal ad_failed(placement_id: String, reason: String)
 
+## SDK 초기화와 로드는 어댑터가 동의 상태를 확인한 뒤 수행한다.
+func initialize(_privacy: PrivacyService) -> void:
+	pass
+
 ## 보상형 광고 요청을 받을 수 있는지 반환한다.
 func is_rewarded_ready() -> bool:
 	return false

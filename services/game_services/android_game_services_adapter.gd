@@ -30,9 +30,7 @@ func _bind_plugin(candidate: Object) -> void:
 
 ## Godot 4.7.2 JNI singleton은 Java 메서드를 has_java_method로 조회한다.
 static func supports_plugin_method(candidate: Object, method: String) -> bool:
-	if candidate.has_method("has_java_method"):
-		return bool(candidate.call("has_java_method", method))
-	return candidate.has_method(method)
+	return AndroidPlugin.supports(candidate, method)
 
 func is_available() -> bool:
 	return is_instance_valid(_plugin)

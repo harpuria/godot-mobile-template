@@ -20,14 +20,16 @@ func initialize(active: bool, implementation: AdsAdapter, privacy_service: Priva
 	adapter.rewarded_failed.connect(func(id: String, reason: String): rewarded_failed.emit(id, reason))
 	adapter.interstitial_closed.connect(func(id: String): interstitial_closed.emit(id))
 	adapter.ad_failed.connect(func(id: String, reason: String): ad_failed.emit(id, reason))
+	if enabled:
+		adapter.initialize(privacy)
 
 ## 보상형 광고 요청을 받을 수 있는지 반환한다.
 func is_rewarded_ready() -> bool:
-	return enabled and privacy.can_use_services() and adapter.is_rewarded_ready()
+	return enabled and privacy.can_request_ads() and adapter.is_rewarded_ready()
 
 ## 전면 광고 요청을 받을 수 있는지 반환한다.
 func is_interstitial_ready() -> bool:
-	return enabled and privacy.can_use_services() and adapter.is_interstitial_ready()
+	return enabled and privacy.can_request_ads() and adapter.is_interstitial_ready()
 
 ## 수락 여부와 관계없이 결과 신호가 발생한다. 보상은 completed에서만 지급한다.
 func show_rewarded(placement_id: String) -> void:
@@ -44,7 +46,7 @@ func show_interstitial(placement_id: String) -> void:
 	adapter.show_interstitial(placement_id)
 
 func show_banner(placement_id: String) -> void:
-	if not enabled or not privacy.can_use_services():
+	if not enabled or not privacy.can_request_ads():
 		ad_failed.emit(placement_id, "disabled_or_consent_required")
 		return
 	adapter.show_banner(placement_id)

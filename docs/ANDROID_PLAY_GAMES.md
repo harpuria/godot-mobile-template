@@ -1,6 +1,7 @@
 # Android Play Games 네이티브 연결
 
-2026-10-01: Godot **4.7.2**, Play Games plugin **v3.4.0**, Google SDK **21.0.0**.
+2026-10-21: Godot **4.7.2**, Play Games plugin **v3.4.0**, Google SDK **22.1.0**, Gson **2.14.0**.
+2026-10-01의 최초 기기 로딩 검사는 SDK 21.0.0 / Gson 2.11.0이었다. 갱신 후 세 SDK 동시 검사는 [Android 결제·광고 안내](ANDROID_SERVICES.md)를 따른다.
 SM_F966N / Android 16에서 Debug·Release AAR 로딩을 확인했다. Google 계정 기능은 Console 설정 대기다.
 버전·라이선스·체크섬은 [DEPENDENCIES.md](DEPENDENCIES.md), 실제 검사 결과는 [VALIDATION.md](template/VALIDATION.md)를 따른다.
 

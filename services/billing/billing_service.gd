@@ -7,6 +7,10 @@ signal purchase_cancelled(product_id: String)
 signal purchase_failed(product_id: String, reason: String)
 signal restore_completed(transactions: Array)
 signal restore_failed(reason: String)
+signal products_updated(products: Array)
+signal products_failed(reason: String)
+signal purchase_pending(product_id: String, transaction: Dictionary)
+signal transaction_received(product_id: String, transaction: Dictionary)
 var adapter: BillingAdapter
 var enabled := false
 var busy := false
@@ -25,9 +29,23 @@ func initialize(active: bool, implementation: BillingAdapter) -> void:
 	adapter.restore_failed.connect(func(reason: String):
 		busy = false
 		restore_failed.emit(reason))
+	adapter.products_updated.connect(func(items: Array):
+		busy = false
+		products_updated.emit(items))
+	adapter.products_failed.connect(func(reason: String):
+		busy = false
+		products_failed.emit(reason))
+	adapter.purchase_pending.connect(func(id: String, transaction: Dictionary):
+		busy = false
+		purchase_pending.emit(id, transaction))
+	adapter.transaction_received.connect(func(id: String, transaction: Dictionary):
+		busy = false
+		transaction_received.emit(id, transaction))
+	if enabled:
+		adapter.initialize()
 
 ## 플랫폼 Store ID와 상품 타입을 검증한 다음 adapter로 요청을 전달한다.
-func purchase(product_id: String) -> void:
+func purchase(product_id: String, options: Dictionary = {}) -> void:
 	if not enabled or busy:
 		purchase_failed.emit(product_id, "busy" if busy else "disabled")
 		return
@@ -37,11 +55,31 @@ func purchase(product_id: String) -> void:
 		return
 	var platform := "ios" if MobilePlatform.current() == "iOS" else "android"
 	product["store_id"] = product.get(platform, "")
+	if platform == "android":
+		var overrides: Dictionary = GameConfig.value("billing", "android_product_ids", {})
+		product["store_id"] = overrides.get(product_id, product.store_id)
 	if str(product.store_id).is_empty():
 		purchase_failed.emit(product_id, "missing_store_id")
 		return
+	for key in ["purchase_option_id", "base_plan_id", "offer_id", "is_offer_personalized"]:
+		if options.has(key):
+			product[key] = options[key]
 	busy = true
 	adapter.purchase(product_id, product)
+
+## 가격·구매 옵션은 SDK 조회 결과를 사용한다.
+func query_products() -> void:
+	if not enabled or busy:
+		products_failed.emit("busy" if busy else "disabled")
+		return
+	busy = true
+	adapter.query_products()
+
+## transaction_received를 검증하고 지급 기록을 저장한 뒤 호출한다. 자동 검증·지급은 하지 않는다.
+func finish_purchase(purchase_token: String) -> Error:
+	if not enabled:
+		return ERR_UNAVAILABLE
+	return adapter.finish_purchase(purchase_token)
 
 ## 구매와 복원 작업은 한 번에 하나만 허용한다.
 func restore_purchases() -> void:

@@ -11,6 +11,9 @@ func set_next_result(result: String) -> void:
 	next_result = result if result in ["success", "cancel", "error"] else "error"
 
 func purchase(product_id: String, product: Dictionary) -> void:
+	if not OS.is_debug_build():
+		purchase_failed.emit(product_id, "mock_not_allowed")
+		return
 	var result := next_result
 	next_result = "success"
 	AppLogger.info("MockBilling", "Purchase: %s (%s)" % [product_id, result])
@@ -31,5 +34,8 @@ func purchase(product_id: String, product: Dictionary) -> void:
 
 ## 소모성 상품은 복원하지 않는다. 구독 갱신/만료는 이 Mock의 범위 밖이다.
 func restore_purchases() -> void:
+	if not OS.is_debug_build():
+		restore_failed.emit("mock_not_allowed")
+		return
 	await get_tree().create_timer(0.2).timeout
 	restore_completed.emit(owned.values().duplicate(true))

@@ -9,10 +9,9 @@
 광고·결제 SDK를 게임에서 직접 호출하지 않고 Service → Adapter로 분리합니다.
 장르별 시스템, DI framework, 범용 EventBus는 포함하지 않습니다.
 
-**현재 상태:** Godot 4.7.2 Desktop에서 Foundation·Mock 구현 검증 완료.
-이후 사용자가 Android 실기기 실행과 Mock 광고·결제·복원 성공을 확인했습니다. iOS 실행은 아직 확인하지 않았습니다.
-네이티브 광고·결제·동의는 아직 통합하지 않았습니다. 배포 가능한 SDK 통합 완료 상태가 아닙니다.
-최초 환경에서의 export 실패 기록과 이후 사용자 확인 결과는 [검증 기록](template/VALIDATION.md)을 참고하세요.
+**현재 상태:** 템플릿 0.3.0은 Android GPGS·Google Play Billing·AdMob·UMP를 고정 버전으로 연결합니다.
+Desktop 통합, Android Debug/Release 기기 JNI 로딩·샘플 광고·Release Mock 차단을 검사했습니다.
+실제 Play Console 상품·계정 기능과 iOS는 후속 검증입니다. [Android 연결 계약](ANDROID_SERVICES.md), [실제 검증 기록](template/VALIDATION.md)을 따릅니다.
 
 ## Requirements
 
@@ -28,11 +27,11 @@
 | --- | --- | ---: | --- | --- | --- |
 | Engine | Godot Engine | 4.7.2 | All | 기준 버전 | Locked |
 | Language | GDScript | 4.7.2 내장 | All | 엔진 내장 | Locked |
-| Framework | 자체 Service / Mock / 공통 관리자 | 0.2.0 | All | 4.7.2 Desktop 실행 검증 | In-repo |
-| Billing | 외부 플러그인 없음 | N/A | Android / iOS | Native Unverified | Deferred |
-| Ads / Privacy | 외부 플러그인 없음 | N/A | Android / iOS | Native Unverified | Deferred |
-| Analytics / Review | 자체 Mock | 0.2.0 | All | 4.7.2 Desktop 실행 검증 | Mock |
-| Native SDK | 추가 SDK 없음 | N/A | Android / iOS | Native Unverified | Not installed |
+| Framework | 자체 Service / Mock / 공통 관리자 | 0.3.0 | All | 실행 결과는 VALIDATION 참고 | In-repo |
+| Billing | GodotGooglePlayBilling | 3.3.0 | Android | JNI·조회 응답 확인, 실제 구매 미검증 | Installed, export opt-in |
+| Ads / Privacy | Poing AdMob | 5.1.0 | Android | UMP 갱신·샘플 광고 기기 검사 | Installed, export opt-in |
+| Analytics / Review | 자체 Mock | 0.3.0 | All | 4.7.2 Desktop 실행 검증 | Mock |
+| iOS native | 바이너리 없음 | N/A | iOS | Unverified | Not installed |
 
 엔진 공식 이름은 **Godot Engine**, License는 **MIT**입니다.
 [Repository](https://github.com/godotengine/godot), [고정 버전 설치](https://godotengine.org/download/archive/4.7.2-stable/), [라이선스 및 배포 고지](https://godotengine.org/license/).
@@ -43,30 +42,12 @@
 
 ## Dependency BOM
 
-```text
-Mobile Template BOM v0.2.0
-Godot Engine                  4.7.2
-GDScript                      bundled with Godot 4.7.2
-In-repo framework / mocks     0.2.0
-Installed mobile plugins      Godot Play Game Services v3.4.0 (Android, export opt-in)
-Additional native SDKs        play-services-games-v2 21.0.0, gson 2.11.0 (Android, export opt-in)
-Ads / billing native SDKs     none
-```
-
-기본 preset은 **외부 SDK 없는 scaffold 조합**입니다. Play Games 조합과 근거는 [DEPENDENCIES.md](DEPENDENCIES.md#채택-bom--mobile-template-bom-v020)를 따릅니다. Android Mock에 대한 사용자 확인은 실제 광고·스토어 SDK 조합 검증과 구분합니다.
-
-조사한 후보는 아래와 같으며 **설치된 dependency가 아닙니다**.
-
-| 후보 | 조사된 정식 release | Native dependency | 4.7.2 상태 / 보류 이유 |
-| --- | --- | --- | --- |
-| GodotGooglePlayBilling | 3.3.0 | Google Play Billing Library 9.1.0 | Upstream 4.2+ / 프로젝트 Unverified |
-| Poing Studios AdMob | 5.1.0 | Android Next-Gen Ads 1.4.0 / iOS Ads 13.9.0 | Upstream 4.7.2 테스트 명시 / 문서 요건 충돌, 프로젝트 Unverified |
-| Godot Admob 대안 | 7.0 | 정확한 native 조합 Unknown | Upstream 4.7 / 4.7.2 Unverified |
-| Godot StoreKit 2 | 0.2 | Apple StoreKit 2 OS framework | Experimental / 4.7.2 Unverified |
-| Godot In-app Review | 5.3 | Android 정확 버전 Unknown / iOS OS API | Upstream 4.7 / 4.7.2 Unverified |
-
-**각 후보의 source, MIT license, 설치 방법, 유지보수, 지원 플랫폼, native SDK, 확인 날짜 및 제약은 [DEPENDENCIES.md](DEPENDENCIES.md)에 기록했습니다.**
-불명확한 버전은 Unknown으로 유지하며 이전 release 값을 추측해서 승계하지 않습니다.
+현재 정확한 버전·라이선스·SDK 조합은 [README BOM](../README.md#dependency-bom)과 [DEPENDENCIES.md](DEPENDENCIES.md#채택-bom--mobile-template-bom-v030)를 기준으로 합니다.
+기본 Android preset의 세 SDK 포함 옵션과 native gate는 false입니다.
+GPGS는 v3.4.0 / games-v2 22.1.0 / Gson 2.14.0, 결제는 3.3.0 / Billing 9.1.0,
+광고는 Poing 5.1.0 / Next-Gen Ads 1.4.0 / UMP 4.0.0입니다.
+iOS StoreKit 2·Game Center·광고, 외부 Analytics·Review는 아직 미설치입니다.
+실제 스토어 구매·계정 기능과 빌드·샘플 광고 검증 범위는 구분합니다.
 
 ## Architecture
 
@@ -75,9 +56,9 @@ Game (game/)
     ↓
 Service (App.ads / App.billing / App.analytics / App.privacy / App.review)
     ↓
-Adapter (Mock 또는 unavailable 기본 구현)
+Adapter (Mock / unavailable / Android native)
     ↓
-Godot Plugin / Native SDK (현재 미설치)
+Godot Plugin / Native SDK (Android export opt-in)
 ```
 
 `AdsService`는 클래스이고 `App.ads`는 그 인스턴스입니다. 서비스마다 autoload를 중복 등록하지 않습니다.
@@ -91,7 +72,7 @@ AI Agent가 처음 작업할 때는 [AGENTS.md](../AGENTS.md)와 [CODEBASE_MAP.m
 ## Directory Structure
 
 ```text
-addons/                 고정 native plugin (현재 Android Play Game Services v3.4.0)
+addons/                 고정 Android GPGS / Billing / AdMob AAR와 export 연결
 autoload/               App, GameConfig, SaveManager, Settings, AudioManager, SceneManager
 core/
   events/               예약 디렉터리, 범용 EventBus 없음
@@ -100,7 +81,7 @@ core/
   storage/              JSON 파일 입출력
   utils/                예약 디렉터리
 services/
-  ads/ billing/         Service, Adapter, Mock
+  ads/ billing/         Service, Android Adapter, Mock
   analytics/ privacy/ review/
 ui/
   common/               SafeArea
@@ -215,11 +196,11 @@ Gradle build template은 **Project 메뉴**에서 설치합니다. 일반 export
 5. 휴대폰의 USB 디버깅을 켜고 USB로 연결한 뒤, 휴대폰에서 연결을 허용합니다.
 6. Godot에 표시되는 Android 실행 버튼으로 debug 앱을 설치합니다. 기기가 안 보이면 SDK의 `adb devices`에서 연결 상태를 확인합니다.
 
-현재 permission은 기본 진동용 `VIBRATE`입니다. 광고/분석 네트워크 권한은 아직 넣지 않았습니다.
-네이티브 통합 시 검증한 SDK manifest의 INTERNET/광고 관련 권한, Billing 권한 및 최종 merged manifest를 점검합니다.
+기본 preset은 진동용 `VIBRATE`를 사용합니다. 네이티브 SDK 포함 시 AAR manifest의 네트워크·광고·Billing 권한이 병합됩니다.
+실제 배포 권한은 최종 merged manifest로 확인합니다. Android 세 SDK 동시 export 절차는 [ANDROID_SERVICES.md](ANDROID_SERVICES.md)를 따릅니다.
 
 Billing은 3.3.0 후보를 태그 고정 후 `addons/GodotGooglePlayBilling/`에 설치·활성화하고 Adapter를 추가하는 후속 작업입니다.
-해당 후보의 compileSdk 36 요구사항을 기본 SDK35와 별도 조정해야 합니다.
+현재 네이티브 검증 template은 compile/target SDK 36, Build-Tools 36.1.0, min SDK 24를 사용합니다. 초기 조사 표의 SDK35와 구분합니다.
 Play Console 상품을 `products.json`과 연결하고 내부 테스트 트랙·테스터로 구매/복원을 검증합니다.
 AdMob 역시 후속 adapter에서 테스트 App ID/unit ID를 사용하며 production ID를 여기 포함하지 않습니다.
 
@@ -281,15 +262,17 @@ App.billing.restore_purchases()
 
 Mock transaction 필드: `transaction_id`, `product_id`, `store_id`, `type`, `mock=true`.
 Mock 복원은 **현재 실행 세션**의 비소모성/구독 상품만 포함합니다. 소모성 상품은 제외합니다.
-구독 갱신/만료, 상품 가격 조회, offer, pending, 실제 영수증 검증·acknowledge/consume/finish는 아직 구현하지 않았습니다.
-Native adapter는 검증과 거래 정리를 포함하는 계약을 완성한 뒤 연결해야 합니다.
+Android native는 가격·offer 조회, pending, 취소, 복원과 acknowledge/consume을 연결합니다.
+`transaction_received`는 미검증 수신입니다. 게임/서버가 검증·중복 지급 방지·저장을 마친 뒤 `finish_purchase(token)`을 호출합니다.
+자동 영수증 검증 서버와 게임별 보상·구독 갱신/만료 정책은 포함하지 않습니다. [구매 API 계약](ANDROID_SERVICES.md#google-play-billing-계약)을 따릅니다.
 게임의 보상·영구 권한은 게임 저장 구조에서 관리하며 같은 transaction을 재수신해도 중복 지급하지 않도록 구현합니다.
 
 ## Mock Services
 
 기본 Desktop debug는 `mode="mock"`입니다. 실행 중인 게임은 `Engine.is_editor_hint()`가 false여도 Mock을 사용할 수 있습니다.
 모바일 debug에서 Mock을 쓰려면 `allow_mobile_debug_mocks=true`를 명시해야 합니다.
-**release에서는 설정과 관계없이 Mock이 선택되지 않습니다.** Native 구현이 없으므로 unavailable 결과를 반환합니다.
+**release에서는 설정과 관계없이 Mock이 선택되지 않습니다.** MockBillingAdapter 직접 호출도 구매·복원이 차단됩니다.
+Android native는 SDK 포함·mode·검증 gate가 맞을 때 선택하며 미설정 경로는 unavailable입니다.
 
 ```gdscript
 App.billing.set_mock_result("cancel") # success / cancel / error, 다음 요청에만 적용
@@ -302,7 +285,8 @@ App.analytics.set_user_property("language", "ko")
 App.review.request_review()
 ```
 
-Privacy 초기 상태는 unknown이며 명시적 granted 전에는 광고/분석을 차단합니다.
+Privacy 초기 상태는 unknown입니다. 광고는 `can_request_ads()`, 분석은 `can_use_services()`로 확인합니다.
+Native UMP의 `ads_allowed`는 광고 요청 자격이며 분석·개인화 동의를 뜻하지 않습니다.
 `privacy_enabled=false`일 때도 광고/분석은 차단됩니다. 이 초기 정책을 변경하려면 실제 SDK의 동의 상태 모델에 맞춰 서비스와 테스트를 함께 변경합니다.
 Analytics Mock은 이벤트/속성 이름만 개발 로그에 남기고 속성 값은 출력하지 않습니다.
 Review의 `mock_requested`는 실제 표시 또는 리뷰 작성 완료를 의미하지 않습니다.
@@ -365,7 +349,7 @@ iOS release는 Xcode signing/archive까지 수행해야 완료입니다.
 Demo/음원은 기본 검증용이므로 새 게임의 release export에서 제외하세요. 파일을 삭제하면 통합 검사가 실패합니다.
 
 2026-09-16 최초 export는 SDK/template 부재로 실패했습니다. 이후 Android 실기기 실행과 Mock 테스트는 사용자 확인을 받았습니다.
-기기·도구 버전 및 release 결과는 별도 기록이 필요합니다. iOS와 실제 광고·결제 SDK 통합도 아직 검증하지 않았습니다.
+2026-10-21 Android 네이티브 export·기기 결과는 [검증 기록](template/VALIDATION.md)을 따릅니다. 실제 스토어 구매·계정 기능과 iOS는 미검증입니다.
 
 ## Dependency Upgrade Policy
 
@@ -388,11 +372,11 @@ release 절차: 버전·변경 기록 갱신 → 통합 검사 → 기본 브랜
 
 ## Known Limitations
 
-- Android/iOS native integration 및 실기기 safe area, back, rotation, haptic, pause/resume는 Unverified입니다.
+- Android native 검증 범위는 VALIDATION을 따릅니다. 실제 스토어·계정 기능과 iOS native, 전체 safe area/back/rotation/haptic/lifecycle 조합은 미검증입니다.
 - SafeArea는 전체화면 모바일 canvas 기준입니다. 다중 창/특수 viewport는 게임에서 보완해야 합니다.
 - SceneManager는 두 프레임 뒤 메인 스레드에서 로드합니다. 큰 장면은 일시 정지가 있을 수 있으며 streaming은 범위 밖입니다.
-- 개인정보 모델은 Mock 검증용 단순 상태입니다. 실제 UMP canRequestAds와 ATT 상태는 같은 개념이 아니므로 native 구현 시 각각 매핑해야 합니다.
-- 배너, 실제 SDK init/재시도, 결제 보안/서버 검증, 구독 정책은 후속 작업입니다.
+- UMP 광고 자격과 분석 동의를 분리합니다. 실제 앱의 required 동의 UI·거부·개인정보 선택 변경은 추가 기기 검증이 필요합니다. iOS ATT는 미설치입니다.
+- 배너·미디에이션, 게임/서버의 결제 검증·지급 기록과 구독 정책은 후속 작업입니다.
 - Settings 언어 선택만 제공하며 데모 전체 번역은 포함하지 않습니다.
 - 프레임워크는 게임별 데이터·보상·entitlement를 정의하지 않습니다.
 
@@ -401,8 +385,8 @@ release 절차: 버전·변경 기록 갱신 → 통합 검사 → 기본 브랜
 | 증상 | 확인할 내용 |
 | --- | --- |
 | class not found | 4.7.2 Editor로 한 번 import한 뒤 실행 |
-| 광고가 not ready | 기능 플래그, Mock 선택, consent granted 여부 |
-| 모바일에서 unavailable | debug 빌드, mode=mock, allow_mobile_debug_mocks=true 확인; native SDK는 미설치 |
+| 광고가 not ready | 기능 플래그, 어댑터 선택, can_request_ads(), native loaded 상태 |
+| 모바일에서 unavailable | Mock은 debug/mode/allow_mobile_debug_mocks, native는 SDK 포함 옵션·기능별 mode·검증 gate·로컬 설정 확인 |
 | 구매 disabled/invalid_product | iap 플래그와 logical ID/type/플랫폼 ID |
 | 소리가 없음 | BGM/SFX/UI 볼륨, OS 음량, stream 값; headless는 소리가 출력되지 않음 |
 | 저장이 계속 실패 | `write_blocked`, 쓰기 권한, 디스크, schema/migration과 오류 신호 |

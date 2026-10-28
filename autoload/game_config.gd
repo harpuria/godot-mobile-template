@@ -2,7 +2,7 @@
 extends Node
 
 const ENGINE_VERSION = "4.7.2"
-const TEMPLATE_VERSION = "0.2.0"
+const TEMPLATE_VERSION = "0.3.0"
 var config := ConfigFile.new()
 var products: Dictionary = {}
 
@@ -16,6 +16,17 @@ func _ready() -> void:
 		for key in build_config.get_section_keys("game_services"):
 			if key in ["android_game_id", "android_mode", "android_native_verified", "leaderboard_ids", "achievement_ids"]:
 				config.set_value("game_services", key, build_config.get_value("game_services", key))
+	var android_config := ConfigFile.new()
+	if android_config.load("res://config/android_services.build.cfg") == OK:
+		var allowed := {
+			"billing": ["android_mode", "android_native_verified", "timeout_seconds", "android_product_ids"],
+			"ads": ["android_mode", "android_native_verified", "use_test_ads", "android_app_id", "rewarded_unit_id", "interstitial_unit_id", "test_device_ids", "retry_seconds"],
+			"privacy": ["tag_for_under_age_of_consent"],
+		}
+		for section in allowed:
+			for key in allowed[section]:
+				if android_config.has_section_key(section, key):
+					config.set_value(section, key, android_config.get_value(section, key))
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://config/products.json"))
 	if parsed is Dictionary:
 		products = parsed

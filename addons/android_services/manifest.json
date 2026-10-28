@@ -1,0 +1,92 @@
+{
+  "sources": [
+    {
+      "name": "GodotGooglePlayBilling",
+      "version": "3.3.0",
+      "license": "MIT",
+      "release": "https://github.com/godot-sdk-integrations/godot-google-play-billing/releases/tag/3.3.0",
+      "archive_sha256": "20d75623d6f337f08d8283c83098b73678d5f575e39247af5a8eb80588b18568"
+    },
+    {
+      "name": "Poing AdMob Android",
+      "version": "5.1.0",
+      "license": "MIT",
+      "release": "https://github.com/poingstudios/godot-admob-plugin/releases/tag/v5.1.0",
+      "archive_sha256": "f7fdf644d50c0e231d8f02ae044057e489d0bcafcf50e908a4858477e7ee05ee"
+    }
+  ],
+  "binaries": [
+    {
+      "file": "admob/bin/poing-godot-admob-ads-debug.aar",
+      "sha256": "fac3128d6e64b59666b1bac3097952bbbde2f1b1573656cd51b9f64f745edd79",
+      "aar_metadata": [
+        "aarFormatVersion=1.0",
+        "aarMetadataVersion=1.0",
+        "minCompileSdk=35",
+        "minCompileSdkExtension=0",
+        "minAndroidGradlePluginVersion=1.0.0",
+        "coreLibraryDesugaringEnabled=false"
+      ]
+    },
+    {
+      "file": "admob/bin/poing-godot-admob-ads-release.aar",
+      "sha256": "aeca6a3c813da770390dc1d574765b17d8ba78fe0cf1cb61438dc08df1fe1c67",
+      "aar_metadata": [
+        "aarFormatVersion=1.0",
+        "aarMetadataVersion=1.0",
+        "minCompileSdk=35",
+        "minCompileSdkExtension=0",
+        "minAndroidGradlePluginVersion=1.0.0",
+        "coreLibraryDesugaringEnabled=false"
+      ]
+    },
+    {
+      "file": "admob/bin/poing-godot-admob-core-debug.aar",
+      "sha256": "f78a4075635d4d3f27d7de66d350fb77c16f21e60e24ceee702c80efe5b96e29",
+      "aar_metadata": [
+        "aarFormatVersion=1.0",
+        "aarMetadataVersion=1.0",
+        "minCompileSdk=35",
+        "minCompileSdkExtension=0",
+        "minAndroidGradlePluginVersion=1.0.0",
+        "coreLibraryDesugaringEnabled=false"
+      ]
+    },
+    {
+      "file": "admob/bin/poing-godot-admob-core-release.aar",
+      "sha256": "f89e3f1096047fabc83208e4e00a3f0aef847229bcb68cc01e791bd57468fda0",
+      "aar_metadata": [
+        "aarFormatVersion=1.0",
+        "aarMetadataVersion=1.0",
+        "minCompileSdk=35",
+        "minCompileSdkExtension=0",
+        "minAndroidGradlePluginVersion=1.0.0",
+        "coreLibraryDesugaringEnabled=false"
+      ]
+    },
+    {
+      "file": "billing/bin/GodotGooglePlayBilling-debug.aar",
+      "sha256": "f7f8f3f1c8099e58127332c8c27f353a7eea079e749682d2ebd83d1bd4bd6f3d",
+      "aar_metadata": [
+        "aarFormatVersion=1.0",
+        "aarMetadataVersion=1.0",
+        "minCompileSdk=1",
+        "minCompileSdkExtension=0",
+        "minAndroidGradlePluginVersion=1.0.0",
+        "coreLibraryDesugaringEnabled=false"
+      ]
+    },
+    {
+      "file": "billing/bin/GodotGooglePlayBilling-release.aar",
+      "sha256": "b667b4ae3ecf91d7dea90bebd4ba5a7aef56cfc2cd7de4787aeb51a1927dcef7",
+      "aar_metadata": [
+        "aarFormatVersion=1.0",
+        "aarMetadataVersion=1.0",
+        "minCompileSdk=1",
+        "minCompileSdkExtension=0",
+        "minAndroidGradlePluginVersion=1.0.0",
+        "coreLibraryDesugaringEnabled=false"
+      ]
+    }
+  ]
+}

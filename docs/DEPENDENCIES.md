@@ -1,65 +1,83 @@
 # Dependency 조사 및 Compatibility BOM
 
-조사일: **2026-09-16**. 기준 엔진: **Godot 4.7.2**, Template: **0.1.0**.
-게임 서비스의 후속 확인일은 **2026-10-01**이며 아래 설치·기기 검증 기록을 따른다.
-
-공식 Godot 아카이브에서 4.7.2 stable의 공개일 **2026-08-18**을 확인했다. 엔진 버전은 변경하지 않는다. [공식 다운로드](https://godotengine.org/download/archive/4.7.2-stable/), [릴리스 설명](https://godotengine.org/article/maintenance-release-godot-4-7-2/)
+최종 Android 통합 확인일: **2026-10-21**. 기준 엔진: **Godot 4.7.2**, Template: **0.3.0**.
+초기 조사는 2026-09-16, GPGS 최초 설치는 2026-10-01이다. 날짜별 실제 검사 결과는 [VALIDATION.md](template/VALIDATION.md)를 따른다.
 
 ## 상태의 의미
 
-- **Locked**: 이 템플릿이 지정한 정확한 버전.
-- **Upstream supported**: 제작자의 지원 범위 또는 릴리스 테스트 주장. 이 프로젝트의 기기 검증과 다르다.
-- **Unverified**: 해당 기능 또는 플랫폼을 이 프로젝트와 Godot 4.7.2 조합으로 검증하지 않았다. 부분적인 AAR 로딩 검증은 계정 기능의 검증을 대신하지 않는다.
-- **Experimental**: 제작자가 API 불안정 또는 개발 중이라고 명시했다.
-- **Unknown**: 공개 자료로 정확한 값이나 상태를 확정하지 못했다.
+- **Locked**: 정확히 고정한 버전.
+- **Installed, export opt-in**: AAR가 설치됐고 별도 Android Gradle preset에서 선택할 때만 포함한다.
+- **Upstream supported**: 제작자의 지원 범위이며 이 프로젝트의 기기 검증과 구분한다.
+- **Unverified**: 해당 기능을 실제 스토어·계정·기기 조합으로 확인하지 않았다.
+- **Experimental / Unknown**: API 개발 중 또는 정확한 조합을 공개 자료로 확인하지 못했다.
 
-## 채택 BOM — Mobile Template BOM v0.2.0
+## 채택 BOM — Mobile Template BOM v0.3.0
 
-| Category | Name | Version | Platform | Godot Compatibility | Status |
-| --- | --- | --- | --- | --- | --- |
-| Engine | Godot Engine | 4.7.2 | Android / iOS / Desktop | 기준 버전 | Locked |
-| Language | GDScript | Godot 4.7.2 내장 | All | 엔진에 포함 | Locked |
-| Services | 저장/설정/오디오/씬/Mock 서비스, 게임 서비스 Service/Adapter | Template 0.2.0 | All | 실행 검증 결과는 README 참고; native 미검증 | In-repo |
-| Native plugin | Godot Play Game Services | v3.4.0 | Android | 4.7.2 Debug/Release export·기기 로딩 통과; 계정 기능 미검증 | Installed, export opt-in |
-| External native SDK | Google Play Games Services v2 | 21.0.0 | Android | 위 플러그인과 Gradle 의존성 해결 확인 | Installed, export opt-in |
-| Serialization | Gson | 2.11.0 | Android | 위 플러그인의 고정 의존성 | Installed, export opt-in |
-| iOS native plugins | 없음 | N/A | iOS | GameCenter 바이너리 통합 보류 | Not installed |
+| 구성 | 고정 버전 | 플랫폼 | 상태 / 호환성 근거 |
+| --- | --- | --- | --- |
+| Godot / GDScript | 4.7.2 | All | Locked; 엔진 버전 유지 |
+| 공통 Service / Mock / Adapter | Template 0.3.0 | All | In-repo |
+| Godot Play Game Services | v3.4.0 | Android | MIT, AAR 유지; SDK 갱신 후 JNI·기기 로딩 확인, 계정 기능 미검증 |
+| Google Play Games Services v2 | 22.1.0 | Android | Installed, export opt-in |
+| Gson | 2.14.0 | Android | Apache-2.0, Java 8+/Android API 21+ |
+| GodotGooglePlayBilling | 3.3.0 | Android | MIT, JNI·상품 조회 응답 확인, 실제 스토어 구매 미검증 |
+| Google Play Billing (billing-ktx) | 9.1.0 | Android | Installed, export opt-in |
+| Poing AdMob ads/core | 5.1.0 | Android | MIT, 고정 Android 4.7.2 archive; 샘플 광고·콜백 기기 확인 |
+| Google Mobile Ads Next-Gen | 1.4.0 | Android | 플러그인 공식 조합 유지; Installed, export opt-in |
+| Google UMP | 4.0.0 | Android | Ads의 전이 의존성; 갱신 후 광고 자격 확인 |
+| AndroidX ConstraintLayout | 2.2.0 | Android | Apache-2.0; Poing Android exporter 고정 의존성 |
+| Kotlin runtime (전이 의존성) | 2.2.10 | Android | Billing 9.1.0이 요구; Apache-2.0, export·기기 결과는 VALIDATION 참고 |
+| iOS native plugins | 없음 | iOS | Game Center / IAP / 광고 바이너리 미설치 |
 
-기본 Android preset은 SDK를 포함하지 않는다. Play Games SDK는 별도 Gradle export에서 명시적으로 선택한다. 광고·결제 실기기 검증 조합이라고 표현하지 않는다. Godot는 [MIT 라이선스](https://godotengine.org/license/)이며 엔진 배포물의 제3자 고지 역시 보존한다. 설치는 4.7.2 Standard 편집기 및 정확히 일치하는 4.7.2 export templates를 사용한다. [엔진 소스](https://github.com/godotengine/godot)
+기본 Android preset은 SDK를 포함하지 않는다. `game_services/include_sdk`, `billing/include_sdk`, `ads/include_sdk`는 모두 false다.
+기능별 native gate도 false다. 설치·빌드·샘플 광고 검증을 실제 스토어 구매/계정 인증 완료로 확대 해석하지 않는다.
+운영 ID·서명·비밀은 Git 밖에서 관리한다. [설정과 API 계약](ANDROID_SERVICES.md).
+
+## Android 고정 배포물 — 2026-10-21
+
+### GPGS 의존성 갱신
+
+- [v3.4.0 release](https://github.com/godot-sdk-integrations/godot-play-game-services/releases/tag/v3.4.0)의 기존 Debug/Release AAR와 MIT 고지를 유지한다.
+- upstream 태그는 games-v2 21.0.0 / Gson 2.11.0으로 빌드됐지만, 이 프로젝트의 export 의존성은 **22.1.0 / 2.14.0**으로 명시적으로 갱신했다.
+- [Google 22.1.0 릴리스](https://developers.google.com/android/guides/releases#september_15_2026), [Gson 2.14.0](https://github.com/google/gson/releases/tag/gson-parent-2.14.0), [Gson 요구사항](https://github.com/google/gson/blob/gson-parent-2.14.0/README.md#requirements).
+- Gson은 [Apache-2.0](https://github.com/google/gson/blob/gson-parent-2.14.0/LICENSE)이다. JDK 17 / 최소 Android API 24로 빌드한다.
+- 실제 Game ID, OAuth, 계정 로그인·리더보드·업적은 여전히 게임별 설정·검증이 필요하다.
+
+### Android Billing — GodotGooglePlayBilling 3.3.0
+
+- [고정 release](https://github.com/godot-sdk-integrations/godot-google-play-billing/releases/tag/3.3.0), [MIT](https://github.com/godot-sdk-integrations/godot-google-play-billing/blob/3.3.0/LICENSE).
+- [태그 빌드 설정](https://github.com/godot-sdk-integrations/godot-google-play-billing/blob/3.3.0/godot-google-play-billing/build.gradle.kts): Billing **9.1.0**, compileSdk 36, minSdk 23, Java 17, Godot library 4.5.1.stable.
+- release ZIP의 AAR 두 개와 라이선스만 `addons/android_services/billing/`에 설치했다. 자체 exporter가 Billing SDK만 연결하며 Maven Godot 4.5.1을 의존성으로 추가하지 않는다.
+- 실제 [JNI 메서드·신호](https://github.com/godot-sdk-integrations/godot-google-play-billing/blob/3.3.0/godot-google-play-billing/src/main/java/org/godotengine/plugin/googleplaybilling/GodotGooglePlayBilling.kt)에 맞춰 어댑터를 구현했다.
+- 상품 조회, offer 선택, pending, 취소, 재연결, restore, acknowledge/consume, 중복·timeout 계약은 가짜 SDK로 검사했다.
+- 실제 상품의 구매·pending 전환·취소·소모/복원·구독 갱신은 Play Console 테스트 트랙과 검증 서버가 준비된 게임에서 추가 확인해야 한다.
+
+### Android 광고 — Poing AdMob 5.1.0
+
+- [고정 release](https://github.com/poingstudios/godot-admob-plugin/releases/tag/v5.1.0), MIT 고지는 `addons/android_services/admob/LICENSE`에 보존했다.
+- `android-template-v4.7.2.zip`의 ads/core Debug/Release AAR 네 개만 `addons/android_services/admob/`에 설치했다. 자동 다운로드·미디에이션·upstream autoload를 추가하지 않았다.
+- archive의 exporter가 **Next-Gen Ads 1.4.0**, **ConstraintLayout 2.2.0**을 지정한다. 실제 Gradle 해결에서 **Google UMP 4.0.0**을 확인했다. [고정 exporter 소스](https://github.com/poingstudios/godot-admob-plugin/tree/v5.1.0/platforms/android).
+- AAR metadata는 minCompileSdk 35, Android manifest는 min SDK 24다. 기준 Godot template의 compile/target 36 / min 24와 함께 export한다.
+- [ConstraintLayout Maven POM](https://dl.google.com/dl/android/maven2/androidx/constraintlayout/constraintlayout/2.2.0/constraintlayout-2.2.0.pom)의 라이선스는 Apache-2.0이다.
+- `/5.0/` 문서의 과거 SDK 값을 현재 BOM으로 전사하지 않는다. iOS Ads 13.9.0과 iOS UMP는 이번에 설치·검증하지 않았다.
+- UMP 갱신·광고 자격과 Google 샘플 보상형/전면 광고를 검사한다. 실제 광고 ID의 required 동의 UI·거부·선택 변경·운영 광고·개인정보 선언은 게임별 후속 검증이다.
+
+### 라이선스·무결성·검증 증거
+
+- 새 AAR 여섯 개의 `classes.jar`에는 `org/godotengine/godot/` 엔진 클래스가 없다. 실행 엔진은 4.7.2 export template의 library다.
+- 원본 release asset SHA-256과 각 AAR 해시는 [manifest.json](../addons/android_services/manifest.json)에 기록했다. 공식 GitHub asset digest와 일치한다.
+- Google Billing, Play Games, Ads, UMP는 각 Google SDK 약관을 따르며 MIT 플러그인 라이선스와 별개다. [Google 약관](https://developers.google.com/terms).
+- Kotlin runtime은 Billing SDK에 의해 2.2.10으로 해결됐다. [Kotlin 소스·Apache-2.0](https://github.com/JetBrains/kotlin/tree/v2.2.10). Godot template의 Kotlin Gradle plugin 2.1.21을 업그레이드하지 않았다.
+- [실제 Android 의존성 graph](ANDROID_SERVICES_DEPENDENCIES.txt), [검증 결과](template/VALIDATION.md)를 따른다.
 
 ## 다음 Native BOM 후보 — 아직 설치하지 않음
 
-| 후보 | 확인한 최신 정식 release | 플랫폼 | 유지보수 근거 | Godot 4.7.2 판정 | 결정 |
-| --- | --- | --- | --- | --- | --- |
-| GodotGooglePlayBilling | 3.3.0 | Android | 2026-07-27 release | Upstream 4.2+ / 프로젝트 Unverified | Android 결제 우선 후보 |
-| Poing Studios Godot AdMob Plugin | 5.1.0 | Android / iOS | 2026-09-13 release | Upstream 4.7.2 테스트 명시 / 프로젝트 Unverified | 광고 우선 검토 후보 |
-| godot-sdk-integrations Godot Admob | 7.0 | Android / iOS | 2026-05-27 release | Upstream 4.7 / 정확한 patch Unverified | 대안, 동시 설치 금지 |
-| Godot StoreKit 2 | 0.2 | iOS | release 존재, API 개발 중 | Experimental / 4.7.2 Unverified | 보류 |
-| Godot iOS Plugins InAppStore | 3.5-stable release 확인 | iOS | 확인한 정식 바이너리는 Godot 3.5용 | 4.7.2용 바이너리 Unverified | 구형 release 설치 금지 |
-| Godot In-app Review Plugin | 5.3 | Android / iOS | 2026-05-25 release | Upstream 4.7 / 정확한 patch Unverified | optional 보류 |
-
-표의 버전은 설치된 dependency가 아니다. 최신 여부는 아래 링크를 조사한 날짜 기준이며 nightly/prerelease를 선택하지 않았다.
-
-### Android Billing: GodotGooglePlayBilling 3.3.0
-
-- Source: [관리 저장소](https://github.com/godot-sdk-integrations/godot-google-play-billing), [정식 releases](https://github.com/godot-sdk-integrations/godot-google-play-billing/releases). 기존 Godot 프로젝트 플러그인의 `godot-sdk-integrations` 관리 저장소를 우선 조사했다.
-- License: [MIT, 3.3.0 태그](https://github.com/godot-sdk-integrations/godot-google-play-billing/blob/3.3.0/LICENSE).
-- Native: **Google Play Billing Library 9.1.0**, `billing-ktx:9.1.0`. 태그의 빌드 파일은 Godot library **4.5.1.stable**, compileSdk **36**, minSdk **23**, Java **17**을 지정한다. [태그 build.gradle.kts](https://github.com/godot-sdk-integrations/godot-google-play-billing/blob/3.3.0/godot-google-play-billing/build.gradle.kts)
-- 설치 계획: 3.3.0 release ZIP을 `addons/GodotGooglePlayBilling/`로 복사하고 Plugins 활성화, Android Gradle build 활성화. [제작자 설치 안내](https://github.com/godot-sdk-integrations/godot-google-play-billing)
-- 선정 이유: Android billing 전용 인터페이스와 현재 native library 업데이트가 확인된다. 4.2+ 지원 설명은 있으나 4.7.2 실기기 결제 검증 자료로 간주하지 않는다.
-- 제약/TODO: Gradle 의존성 해결과 중복 Godot library 여부, 상품 조회, pending, acknowledge/consume, 취소, 재시작 후 복구, 구독 offer, 중복 거래 방지를 sandbox에서 확인한다. Google SDK 배포 약관은 MIT 플러그인 라이선스와 별개로 확인한다.
-- 마지막 문서 확인: **2026-09-16**. 실제 통합: **Unverified**.
-
-### 광고 우선 후보: Poing Studios Godot AdMob Plugin 5.1.0
-
-- Source: [제작자 저장소 및 MIT 표시](https://github.com/poingstudios/godot-admob-plugin), [5.1.0 release](https://github.com/poingstudios/godot-admob-plugin/releases/tag/v5.1.0).
-- 유지보수: release에서 R8, export, iOS callback crash 관련 수정이 확인된다. release는 Godot **4.7.2까지 테스트**했다고 명시하고 Android 4.7.2 template asset을 제공한다. 이를 프로젝트 검증과 구분한다.
-- Native release 표기: Android Google Mobile Ads **Next-Gen 1.4.0**, iOS Google Mobile Ads **13.9.0**. 기존 Android `play-services-ads`의 24.x 버전과 혼동하지 않는다.
-- 중요한 불일치: 5.1.0 release는 compileSdk **35**, 최소 iOS **15.0**을 설명하지만 `/5.0/` 문서는 compileSdk **36**, 최소 iOS **14.0**, Android SDK **1.2.1**, iOS SDK **13.6.0**, iOS UMP **3.1.0**을 표시한다. 따라서 `/5.0/` 값을 5.1.0 BOM에 그대로 전사하지 않는다. **5.1.0 UMP 정확한 버전은 Unknown**. [문서](https://poingstudios.github.io/godot-admob-plugin/5.0/)
-- 설치 계획: 정확한 5.1.0 ZIP을 프로젝트에 추출하고 플러그인을 활성화한다. 자동 native 다운로드가 있으므로 먼저 태그 manifest와 다운로드 URL/version 고정을 감사한다. Android build template/Gradle과 iOS export 설정을 검증한다.
-- 선정 이유: 양 플랫폼 지원 및 정확한 Godot patch에 대한 upstream 자료가 가장 직접적이다.
-- 보류 이유/TODO: tagged native manifest/라이선스/해시를 확인하고 충돌하는 문서 요건을 해소한 다음 최소 양 플랫폼 export 및 테스트 광고를 검증해야 한다. 이 scaffold에는 아직 설치하지 않는다.
-- 마지막 문서 확인: **2026-09-16**. 프로젝트 호환성: **Unverified**.
+| 후보 | 확인한 release | 플랫폼 | 결정 |
+| --- | --- | --- | --- |
+| godot-sdk-integrations Godot Admob | 7.0 | Android / iOS | Poing과 동시 설치하지 않음; 대안 보류 |
+| Godot StoreKit 2 | 0.2 | iOS | API 개발 중, 바이너리 호환성 미검증 |
+| Godot iOS Plugins InAppStore | 3.5-stable | iOS | 공개 바이너리는 Godot 3.5용; 현재 엔진에 설치 금지 |
+| Godot In-app Review Plugin | 5.3 | Android / iOS | optional 보류 |
 
 ### 광고 대안: godot-sdk-integrations Godot Admob 7.0
 
@@ -80,13 +98,15 @@
 
 ### Privacy / Analytics / Review
 
-- Privacy는 별도 네이티브 dependency를 설치하지 않는다. 광고 후보의 UMP/ATT 내장을 재사용할 계획이다. Mock consent를 실제 이용자 동의나 법적 준수의 증거로 사용하지 않는다. [Admob 내장 기능](https://github.com/godot-sdk-integrations/godot-admob)
+- Android Privacy는 설치된 Poing AdMob AAR의 UMP API와 Ads가 해결하는 UMP 4.0.0을 재사용한다. iOS ATT는 미설치다. Mock consent를 실제 이용자 동의의 증거로 사용하지 않는다.
 - Analytics는 특정 사업자가 필요하지 않아 자체 Mock만 사용한다. Firebase 및 관련 native SDK는 **미도입, 버전 N/A**.
 - Review 후보는 [Godot In-app Review Plugin](https://github.com/godot-mobile-plugins/godot-inapp-review), [v5.3 release](https://github.com/godot-mobile-plugins/godot-inapp-review/releases), License **MIT**. Godot 4.7 테스트 및 양 플랫폼 지원을 명시한다. Android native Google Play Review library의 정확한 버전은 **Unknown**, iOS는 시스템 review API이며 독립 SDK 패키지 버전 N/A.
 - 설치 계획: 5.3 플랫폼 archive를 추출하고 플러그인 활성화, Android Gradle 및 iOS export plugin 활성화. 실제 리뷰 창은 스토어 정책/할당량에 따라 나타나지 않을 수 있다. 호출 완료를 사용자의 리뷰 작성 완료로 해석하지 않는다.
 - optional 모듈이므로 현재 Mock/interface 유지. 마지막 확인 **2026-09-16**, 4.7.2 프로젝트 호환성 **Unverified**.
 
-## 게임 서비스 후보 — 2026-10-01
+## 게임 서비스 최초 도입 기록 — 2026-10-01
+
+아래는 최초 API 조사·설치 조합이다. 현재 Android SDK 22.1.0 / Gson 2.14.0은 위 2026-10-21 BOM과 검증 기록을 따른다.
 
 Android v3.4.0 AAR는 설치했고, 기본 preset의 SDK 포함 옵션은 false다.
 Android 기기 로딩은 통과했지만 Google 계정 기능과 iOS Game Center는 **Unverified**이며 플랫폼별 native gate 기본값은 false다.
