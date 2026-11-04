@@ -1,4 +1,5 @@
 ## Google Play Billing 3.3.0을 연결한다. 구매 수신·검증·스토어 완료를 분리하고 게임 보상은 지급하지 않는다.
+## 같은 JNI 계약을 따르는 다른 Android 스토어 플러그인은 이 클래스를 상속해 이름·상품 ID·오류만 바꾼다.
 class_name AndroidBillingAdapter
 extends BillingAdapter
 
@@ -21,12 +22,12 @@ var _waiting_connection := false
 
 ## SDK가 없거나 플랫폼이 다르면 unavailable을 유지한다.
 func initialize() -> void:
-	var candidate := AndroidPlugin.find_plugin("GodotGooglePlayBilling", METHODS, EVENTS)
+	var candidate := AndroidPlugin.find_plugin(_plugin_name(), _required_methods(), EVENTS)
 	if candidate != null:
 		_bind_plugin(candidate)
 
 func _bind_plugin(candidate: Object) -> void:
-	if not AndroidPlugin.matches(candidate, METHODS, EVENTS):
+	if not AndroidPlugin.matches(candidate, _required_methods(), EVENTS):
 		return
 	_plugin = candidate
 	_plugin.connect("connected", _connected)
@@ -43,11 +44,33 @@ func _bind_plugin(candidate: Object) -> void:
 	_timer.timeout.connect(_timeout)
 	for logical_id in GameConfig.products:
 		var product: Dictionary = GameConfig.products[logical_id].duplicate(true)
-		var overrides: Dictionary = GameConfig.value("billing", "android_product_ids", {})
-		product["store_id"] = str(overrides.get(logical_id, product.get("android", "")))
+		product["store_id"] = GameConfig.store_product_id(logical_id, _store())
 		if not product.store_id.is_empty():
 			_catalog[logical_id] = product
+	_configure_plugin()
 	_plugin.call("initPlugin")
+	# 앱이 꺼진 동안 완료된 구매를 3일 자동 환불 전에 다시 수신한다.
+	sync_purchases()
+
+## 연결할 JNI singleton 이름이다.
+func _plugin_name() -> String:
+	return "GodotGooglePlayBilling"
+
+## singleton이 반드시 제공해야 하는 Java 메서드 목록이다.
+func _required_methods() -> Array:
+	return METHODS
+
+## 상품 ID를 고를 스토어 키다. GameConfig.store_product_id()에 전달한다.
+func _store() -> String:
+	return "google_play"
+
+## initPlugin 전에 스토어별 공개 설정을 전달한다.
+func _configure_plugin() -> void:
+	pass
+
+## native 응답 코드를 게임에 전달할 실패 이유로 바꾼다.
+func _native_reason(code: Variant) -> String:
+	return "native_error:%s" % code
 
 ## 상품 상세를 다시 조회해 만료된 가격·offer cache로 결제하지 않는다.
 func purchase(product_id: String, product: Dictionary) -> void:
@@ -72,6 +95,26 @@ func restore_purchases() -> void:
 		_items.clear()
 		_stage = "inapp"
 		_connect_or_dispatch()
+
+## 앱 시작·재개 시 미완료 구매를 조용히 다시 수신한다. restore 결과 신호는 보내지 않는다.
+## 다른 작업이 진행 중이면 건너뛴다. 수신 결과는 transaction_received/purchase_pending으로만 전달한다.
+func sync_purchases() -> void:
+	if not is_instance_valid(_plugin) or not _operation.is_empty():
+		return
+	_operation = "sync"
+	_logical_id = ""
+	_expired = false
+	_start_timer()
+	_items.clear()
+	_stage = "inapp"
+	_connect_or_dispatch()
+
+## 검증·finish를 기다리는 거래 목록이다. 신호 연결 전에 수신된 거래를 게임이 다시 확인할 때 사용한다.
+func get_unfinished_transactions() -> Array:
+	var result: Array = []
+	for transaction in _awaiting.values():
+		result.append(transaction.duplicate(true))
+	return result
 
 ## 게임이 서버 검증·중복 지급 방지·지급 기록 저장을 마친 뒤에만 호출한다.
 func finish_purchase(purchase_token: String) -> Error:
@@ -125,7 +168,7 @@ func _dispatch() -> void:
 	_waiting_connection = false
 	if _operation == "purchase":
 		_plugin.call("queryProductDetails", PackedStringArray([str(_product.store_id)]), "subs" if _product.type == "subscription" else "inapp")
-	elif _operation == "restore":
+	elif _operation in ["restore", "sync"]:
 		_plugin.call("queryPurchases", _stage, false)
 	elif _operation == "products":
 		var ids := PackedStringArray()
@@ -145,7 +188,7 @@ func _product_details(response: Dictionary) -> void:
 		_drain()
 		return
 	if int(response.get("response_code", -1)) != 0:
-		_fail("native_error:%s" % response.get("response_code", -1))
+		_fail(_native_reason(response.get("response_code", -1)))
 		return
 	var details: Array = response.get("product_details", [])
 	if _operation == "products":
@@ -190,7 +233,7 @@ func _launch(detail: Dictionary) -> void:
 		if code == 1:
 			_cancel()
 		else:
-			_fail("native_error:%s" % code)
+			_fail(_native_reason(code))
 
 func _purchase_updated(response: Dictionary) -> void:
 	var code := int(response.get("response_code", -1))
@@ -199,7 +242,7 @@ func _purchase_updated(response: Dictionary) -> void:
 			if code == 1:
 				_cancel()
 			else:
-				_fail("native_error:%s" % code)
+				_fail(_native_reason(code))
 		return
 	var matched := false
 	for raw in response.get("purchases", []):
@@ -211,14 +254,14 @@ func _purchase_updated(response: Dictionary) -> void:
 	_drain()
 
 func _purchases(response: Dictionary) -> void:
-	if _operation != "restore":
+	if _operation not in ["restore", "sync"]:
 		return
 	if _expired:
 		_clear()
 		_drain()
 		return
 	if int(response.get("response_code", -1)) != 0:
-		_fail("native_error:%s" % response.get("response_code", -1))
+		_fail(_native_reason(response.get("response_code", -1)))
 		return
 	for raw in response.get("purchases", []):
 		var transaction := _receive(raw, true)
@@ -229,8 +272,10 @@ func _purchases(response: Dictionary) -> void:
 		_dispatch()
 	else:
 		var items := _items.duplicate(true)
+		var silent := _operation == "sync"
 		_clear()
-		restore_completed.emit(items)
+		if not silent:
+			restore_completed.emit(items)
 		_drain()
 
 func _receive(raw: Dictionary, replay: bool = false) -> Dictionary:
@@ -302,6 +347,7 @@ func _fail(reason: String) -> void:
 
 func _emit_failure(kind: String, logical_id: String, reason: String) -> void:
 	match kind:
+		"sync": AppLogger.info("AndroidBilling", "Purchase sync skipped: " + reason)
 		"restore": restore_failed.emit(reason)
 		"products": products_failed.emit(reason)
 		_: purchase_failed.emit(logical_id, reason)
@@ -335,7 +381,7 @@ func _connect_error(code: int, _message: String) -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_RESUMED and is_instance_valid(_plugin) and _operation.is_empty():
-		restore_purchases()
+		sync_purchases()
 
 func _exit_tree() -> void:
 	if is_instance_valid(_plugin):

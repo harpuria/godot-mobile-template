@@ -74,8 +74,13 @@ func _ready() -> void:
 	_rewarded_button = _button("Show Google sample rewarded", func(): App.ads.show_rewarded("probe_reward"))
 	_interstitial_button = _button("Show Google sample interstitial", func(): App.ads.show_interstitial("probe_break"))
 	_log("ANDROID_SERVICES_PROBE: %s checks, %s failures; debug=%s" % [_checks, _failures, OS.is_debug_build()])
-	App.billing.query_products()
 	App.privacy.request_consent()
+	# 시작 시 미완료 구매 동기화가 끝난 뒤 상품을 조회한다.
+	var waited := 0.0
+	while App.billing.adapter is AndroidBillingAdapter and not App.billing.adapter._operation.is_empty() and waited < 10.0:
+		await get_tree().create_timer(0.25).timeout
+		waited += 0.25
+	App.billing.query_products()
 
 func _process(delta: float) -> void:
 	if _rewarded_button == null:

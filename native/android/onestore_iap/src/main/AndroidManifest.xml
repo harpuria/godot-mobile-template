@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- minSdk를 명시해 manifest merger가 암묵적 권한(READ_PHONE_STATE 등)을 추가하지 않게 한다. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.mobiletemplate.onestore">
+
+    <uses-sdk android:minSdkVersion="24" />
+
+    <application>
+        <meta-data
+            android:name="org.godotengine.plugin.v2.GodotOneStoreIap"
+            android:value="com.mobiletemplate.onestore.GodotOneStoreIap" />
+    </application>
+</manifest>

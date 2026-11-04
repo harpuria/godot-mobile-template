@@ -65,7 +65,7 @@ func _billing_adapter(mock: bool) -> BillingAdapter:
 	if not GameConfig.enabled("iap"):
 		return BillingAdapter.new()
 	if _android_native("billing"):
-		return AndroidBillingAdapter.new()
+		return OneStoreBillingAdapter.new() if GameConfig.store() == "onestore" else AndroidBillingAdapter.new()
 	return MockBillingAdapter.new() if _section_mock("billing", mock) else BillingAdapter.new()
 
 func _ads_adapter(mock: bool) -> AdsAdapter:

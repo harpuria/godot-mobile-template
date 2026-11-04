@@ -4,6 +4,37 @@
 `config/game.cfg`의 `app/version`은 게임 앱 버전이며 이 기록과 무관하다.
 파생 게임을 업데이트할 때는 [적용 절차](APPLYING.md#템플릿-버전-업데이트)를 따른다.
 
+## 0.4.0 — 2026-11-04
+
+### 추가
+
+- 스토어 배포 preset: `Android Google Play`(Gradle·AAB), `Android ONE store`(Gradle·APK, custom feature `onestore`).
+  `tools/configure.gd`가 없으면 만들고 SDK 포함 옵션을 기능 플래그·스토어 규칙에 맞춘다.
+- `[app] build_number`: 모든 Android version code·iOS build number에 반영.
+- 배포 preset(iOS 포함)은 `main_scene`이 데모가 아니면 데모·진단 장면과 `assets/demo/`를 자동 제외.
+- ONE store 결제: `GameConfig.store()`·`store_product_id()`, `OneStoreBillingAdapter`, `products.json`의 `onestore` 키,
+  `billing/onestore_include_sdk` export 옵션, 템플릿 소유 플러그인 소스 `native/android/onestore_iap/`(IAP SDK 21.04.00)와 `build.sh`. 기기 미검증.
+- `BillingService.get_unfinished_transactions()`: 신호 연결 전에 수신된 미완료 거래 조회.
+- `examples/purchase_ledger/`: 서버 없는 게임용 구매 지급·중복 방지·저장 후 finish 레퍼런스와 검사.
+- Release export 경고: 닫힌 native gate, Google 샘플 광고, Game ID 없는 Play Games, ONE store preset의 Play Games.
+- `.github/workflows/ci.yml`(headless 통합·configure 동기화·문서 링크), `tools/check_docs.py`.
+- [스토어 배포 안내](../STORE_RELEASE.md), [ONE store 연동](../ONESTORE.md).
+
+### 변경
+
+- Android 결제 어댑터가 연결 직후와 resume마다 미완료 구매를 조용히 sync한다. resume에서 더 이상 `restore_completed`를 보내지 않는다.
+- configure가 preset 번호 0/1만이 아니라 모든 Android·iOS preset을 갱신하고, 진단(`probe`) preset은 유지한다. `runnable` 값을 커밋해 재실행 diff를 없앴다.
+- export exclude filter에 `examples/*`, `native/*` 추가.
+- 문서: APPLYING의 태그 안내·파일 분류표, DEVELOPMENT의 오래된 Billing/AdMob 안내·설정 표·구조도, 깨진 앵커 수정.
+- 의존성 버전은 바꾸지 않았다. 2026-11-04 최신 대조 결과는 [DEPENDENCIES.md](../DEPENDENCIES.md#최신-버전-재확인--2026-11-04).
+
+### 파생 게임 업데이트 시 주의
+
+- `config/game.cfg`에 `[app] build_number`, `[billing] onestore_product_ids`, `onestore_public_key` 키를 추가한다. 기존 version code를 쓰고 있었다면 그 값을 `build_number`로 옮긴다.
+- configure를 실행하면 `export_presets.cfg`에 스토어 preset 두 개가 추가된다. 직접 만든 Gradle preset이 있으면 이름을 확인해 중복을 정리한다.
+- resume 시 `restore_completed`에 의존했다면 `transaction_received`/`get_unfinished_transactions()`로 옮긴다.
+- 게임 첫 장면에서 `transaction_received`를 연결하고 `get_unfinished_transactions()`도 같은 지급 경로로 처리한다.
+
 ## 0.3.0 — 2026-10-21
 
 ### 추가

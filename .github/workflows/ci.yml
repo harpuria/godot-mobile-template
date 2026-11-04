@@ -1,0 +1,55 @@
+# Desktop headless 검증. export·네이티브·실기기 검증을 대신하지 않는다.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSION: 4.7.2-stable
+  # 공식 godot-builds release asset의 SHA-256. 엔진 버전을 바꿀 때 함께 갱신한다.
+  GODOT_SHA256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
+
+jobs:
+  headless:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Install Godot
+        run: |
+          mkdir -p "$RUNNER_TEMP/godot"
+          cd "$RUNNER_TEMP/godot"
+          curl -fsSL -o godot.zip "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          echo "${GODOT_SHA256}  godot.zip" | sha256sum --check
+          unzip -q godot.zip
+          echo "GODOT=$RUNNER_TEMP/godot/Godot_v${GODOT_VERSION}_linux.x86_64" >> "$GITHUB_ENV"
+
+      - name: Import project
+        run: |
+          "$GODOT" --headless --path . --editor --import --quit 2>&1 | tee import.log
+          if grep -E "SCRIPT ERROR|Parse Error" import.log; then exit 1; fi
+
+      - name: Config sync is committed
+        run: |
+          "$GODOT" --headless --path . --script res://tools/configure.gd
+          git diff --exit-code project.godot export_presets.cfg
+
+      - name: Integration scenarios
+        run: |
+          for mode in "" --disabled --native; do
+            log="integration${mode:+-${mode#--}}.log"
+            "$GODOT" --headless --path . --scene res://tests/integration.tscn -- $mode 2>&1 | tee "$log"
+            status=${PIPESTATUS[0]}
+            test "$status" -eq 0
+            grep -E "^INTEGRATION.*, 0 failures$" "$log"
+            if grep -E "SCRIPT ERROR|Parse Error|FAIL:" "$log"; then exit 1; fi
+          done
+
+      - name: Documentation links
+        run: python3 tools/check_docs.py

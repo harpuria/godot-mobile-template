@@ -30,3 +30,7 @@ func purchase(product_id: String, _product: Dictionary) -> void:
 
 func restore_purchases() -> void:
 	restore_failed.emit("unavailable")
+
+## 검증·finish를 기다리는 수신 거래 사본을 반환한다. 기본 구현은 미완료 거래가 없다.
+func get_unfinished_transactions() -> Array:
+	return []

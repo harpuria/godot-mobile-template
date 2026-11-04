@@ -9,9 +9,10 @@
 광고·결제 SDK를 게임에서 직접 호출하지 않고 Service → Adapter로 분리합니다.
 장르별 시스템, DI framework, 범용 EventBus는 포함하지 않습니다.
 
-**현재 상태:** 템플릿 0.3.0은 Android GPGS·Google Play Billing·AdMob·UMP를 고정 버전으로 연결합니다.
-Desktop 통합, Android Debug/Release 기기 JNI 로딩·샘플 광고·Release Mock 차단을 검사했습니다.
-실제 Play Console 상품·계정 기능과 iOS는 후속 검증입니다. [Android 연결 계약](ANDROID_SERVICES.md), [실제 검증 기록](template/VALIDATION.md)을 따릅니다.
+**현재 상태:** 템플릿 0.4.0은 Android GPGS·Google Play Billing·AdMob·UMP를 고정 버전으로 연결합니다.
+Desktop 통합, Android Debug/Release 기기 JNI 로딩·샘플 광고·Release Mock 차단을 검사했습니다(0.3.0 기기 기록).
+0.4.0은 Google Play AAB·ONE store 배포 preset, 시작 시 미완료 구매 동기화, ONE store 결제 플러그인 소스(기기 미검증)를 추가했습니다.
+실제 Play Console 상품·계정 기능, ONE store 결제와 iOS는 후속 검증입니다. 스토어별 요건은 [STORE_RELEASE.md](STORE_RELEASE.md)를 따릅니다. [Android 연결 계약](ANDROID_SERVICES.md), [실제 검증 기록](template/VALIDATION.md)을 따릅니다.
 
 ## Requirements
 
@@ -27,25 +28,27 @@ Desktop 통합, Android Debug/Release 기기 JNI 로딩·샘플 광고·Release 
 | --- | --- | ---: | --- | --- | --- |
 | Engine | Godot Engine | 4.7.2 | All | 기준 버전 | Locked |
 | Language | GDScript | 4.7.2 내장 | All | 엔진 내장 | Locked |
-| Framework | 자체 Service / Mock / 공통 관리자 | 0.3.0 | All | 실행 결과는 VALIDATION 참고 | In-repo |
+| Framework | 자체 Service / Mock / 공통 관리자 | 0.4.0 | All | 실행 결과는 VALIDATION 참고 | In-repo |
+| Game services | Godot Play Game Services | v3.4.0 | Android | Debug/Release 기기 로딩, 계정 미검증 | Installed, export opt-in |
 | Billing | GodotGooglePlayBilling | 3.3.0 | Android | JNI·조회 응답 확인, 실제 구매 미검증 | Installed, export opt-in |
+| Billing | GodotOneStoreIap (템플릿 소스) + ONE store IAP SDK | 21.04.00 | Android (ONE store) | 컴파일·가짜 SDK 계약만 확인 | Source, 로컬 빌드 |
 | Ads / Privacy | Poing AdMob | 5.1.0 | Android | UMP 갱신·샘플 광고 기기 검사 | Installed, export opt-in |
-| Analytics / Review | 자체 Mock | 0.3.0 | All | 4.7.2 Desktop 실행 검증 | Mock |
+| Analytics / Review | 자체 Mock | 0.4.0 | All | 4.7.2 Desktop 실행 검증 | Mock |
 | iOS native | 바이너리 없음 | N/A | iOS | Unverified | Not installed |
 
 엔진 공식 이름은 **Godot Engine**, License는 **MIT**입니다.
 [Repository](https://github.com/godotengine/godot), [고정 버전 설치](https://godotengine.org/download/archive/4.7.2-stable/), [라이선스 및 배포 고지](https://godotengine.org/license/).
 4.7.2 Standard를 내려받아 열고 동일 버전 export templates를 설치합니다.
-선택 이유는 이 템플릿의 고정 기술 기준이며, 마지막 로컬 확인일은 **2026-09-16**입니다.
+선택 이유는 이 템플릿의 고정 기술 기준입니다. 2026-11-04에 4.7.2가 최신 안정판(4.8은 beta)임을 확인했습니다.
 엔진에 포함된 제3자 라이선스 고지는 배포 시 보존해야 합니다.
 데모 WAV는 이 저장소에서 생성한 단순 사인파이며 외부 음원 라이브러리가 아닙니다.
 
 ## Dependency BOM
 
-현재 정확한 버전·라이선스·SDK 조합은 [README BOM](../README.md#dependency-bom)과 [DEPENDENCIES.md](DEPENDENCIES.md#채택-bom--mobile-template-bom-v030)를 기준으로 합니다.
+현재 정확한 버전·라이선스·SDK 조합은 [README BOM](../README.md#dependency-bom)과 [DEPENDENCIES.md](DEPENDENCIES.md#채택-bom--mobile-template-bom-v040)를 기준으로 합니다.
 기본 Android preset의 세 SDK 포함 옵션과 native gate는 false입니다.
 GPGS는 v3.4.0 / games-v2 22.1.0 / Gson 2.14.0, 결제는 3.3.0 / Billing 9.1.0,
-광고는 Poing 5.1.0 / Next-Gen Ads 1.4.0 / UMP 4.0.0입니다.
+광고는 Poing 5.1.0 / Next-Gen Ads 1.4.0 / UMP 4.0.0, ONE store는 IAP SDK 21.04.00입니다.
 iOS StoreKit 2·Game Center·광고, 외부 Analytics·Review는 아직 미설치입니다.
 실제 스토어 구매·계정 기능과 빌드·샘플 광고 검증 범위는 구분합니다.
 
@@ -54,9 +57,9 @@ iOS StoreKit 2·Game Center·광고, 외부 Analytics·Review는 아직 미설�
 ```text
 Game (game/)
     ↓
-Service (App.ads / App.billing / App.analytics / App.privacy / App.review)
+Service (App.ads / App.billing / App.analytics / App.privacy / App.review / App.game_services)
     ↓
-Adapter (Mock / unavailable / Android native)
+Adapter (Mock / unavailable / Android native / ONE store)
     ↓
 Godot Plugin / Native SDK (Android export opt-in)
 ```
@@ -72,7 +75,7 @@ AI Agent가 처음 작업할 때는 [AGENTS.md](../AGENTS.md)와 [CODEBASE_MAP.m
 ## Directory Structure
 
 ```text
-addons/                 고정 Android GPGS / Billing / AdMob AAR와 export 연결
+addons/                 고정 Android GPGS / Billing / AdMob AAR와 export 연결, ONE store AAR 로컬 출력 위치
 autoload/               App, GameConfig, SaveManager, Settings, AudioManager, SceneManager
 core/
   events/               예약 디렉터리, 범용 EventBus 없음
@@ -81,19 +84,23 @@ core/
   storage/              JSON 파일 입출력
   utils/                예약 디렉터리
 services/
-  ads/ billing/         Service, Android Adapter, Mock
+  ads/ billing/         Service, Android·ONE store Adapter, Mock
+  game_services/        로그인·업적·리더보드 Service, Android/iOS Adapter, Mock
   analytics/ privacy/ review/
 ui/
   common/               SafeArea
   loading/              전환 overlay
   settings/             재사용 SettingsPanel
   popup/                예약 디렉터리
-scenes/                 bootstrap(게임 초기화 hook), main 검증 화면, 전환 검증 화면, PGS 진단
+scenes/                 bootstrap(게임 초기화 hook), main 검증 화면, 전환 검증 화면, Android 진단
 game/                   게임별 코드 및 저장 구조 (현재 README만 존재)
+examples/               game/으로 복사해 쓰는 레퍼런스(구매 처리). export 제외
+native/                 템플릿이 소유한 native 플러그인 소스(ONE store). export 제외
 config/                 game.cfg, products.json
 assets/demo/            자체 생성 테스트 음원
 tests/                  실제 SceneTree 통합 검사, fixtures/ 검사용 script
-tools/                  공개 설정 동기화 도구
+tools/                  설정 동기화(configure.gd), 문서 링크 검사(check_docs.py)
+.github/workflows/      headless 통합 검사 CI
 docs/                   설계, BOM, 개발 안내
   template/             템플릿 적용 절차, 변경 기록, 템플릿 자체 구현 계획·검증 기록
 ```
@@ -111,20 +118,23 @@ godot --headless --path . --editor --import --quit
 godot --headless --path . --scene res://tests/integration.tscn
 godot --headless --path . --scene res://tests/integration.tscn -- --disabled
 godot --headless --path . --scene res://tests/integration.tscn -- --native
+python3 tools/check_docs.py
 ```
 
 통합 검사는 고유 임시 디렉터리에 저장하여 개발자의 `user://save.json`을 변경하지 않습니다.
 모든 결과가 `PASS`, 마지막 `failures=0`인지 확인합니다. CI에서는 종료 코드뿐 아니라 `SCRIPT ERROR`, `Parse Error` 로그와 완료 요약도 검사하세요.
+`.github/workflows/ci.yml`이 push·PR마다 공식 Godot 4.7.2 Linux 빌드(SHA-256 확인)로 위 명령과 configure 동기화 diff를 검사합니다.
 
 ## Creating a New Game
 
-1. 프로젝트를 복제하고 `config/game.cfg`의 이름, 버전, package/bundle, orientation을 바꿉니다.
+1. 프로젝트를 복제하고 `config/game.cfg`의 이름, 버전, build_number, package/bundle, orientation을 바꿉니다.
 2. `game/main.tscn` 등 게임 첫 장면을 만들고 `app/main_scene`을 지정합니다.
 3. `config/products.json`에서 logical ID / 상품 타입 / Android·iOS ID를 편집합니다.
 4. 사용하지 않는 feature flag를 `false`로 지정합니다.
 5. 아래 설정 동기화 도구를 실행합니다.
 6. 저장 schema와 migration이 필요하면 `game/` 아래 초기화 script를 만들고 `app/init_script`에 지정합니다. bootstrap이 `App.initialize()` **이전**에 호출합니다. ([Save / Settings](#save--settings))
-7. 게임 장면에서는 아래 공개 API만 사용합니다. demo 장면과 `assets/demo`는 통합 검사가 사용하므로 유지합니다.
+7. 게임 장면에서는 아래 공개 API만 사용합니다. demo 장면과 `assets/demo`는 통합 검사가 사용하므로 유지합니다(배포 preset에서는 자동 제외).
+8. 결제를 쓰면 [examples/purchase_ledger](../examples/purchase_ledger/README.md)를 `game/`으로 복사해 지급 규칙을 정합니다.
 
 기존 프로젝트로 가져오는 방법, 유지·교체할 파일, 출처 기록은 [템플릿 적용 절차](template/APPLYING.md)를 따릅니다.
 
@@ -149,12 +159,17 @@ func _on_purchase(product_id: String, transaction: Dictionary) -> void:
 
 | 위치 | 설정 |
 | --- | --- |
-| `app` | name, version(게임 앱 버전), android_package, ios_bundle, orientation, main_scene, init_script |
-| `features` | ads_enabled, iap_enabled, analytics_enabled, review_enabled, privacy_enabled |
+| `app` | name, version(게임 앱 버전), build_number(스토어 제출 번호), android_package, ios_bundle, orientation, main_scene, init_script |
+| `features` | ads_enabled, iap_enabled, analytics_enabled, review_enabled, privacy_enabled, game_services_enabled |
 | `services` | mode=`mock` 또는 `native`, allow_mobile_debug_mocks |
 | `save` | autosave_seconds, 기본 30초 |
-| `ads` | Android/iOS App ID, rewarded/interstitial/banner unit ID (현재 빈 값) |
-| `products.json` | logical ID → type, android, ios |
+| `ads` | android_mode, android_native_verified, use_test_ads, test_device_ids, retry_seconds, Android/iOS App ID, rewarded/interstitial/banner unit ID |
+| `billing` | android_mode, android_native_verified, timeout_seconds, android_product_ids, onestore_product_ids, onestore_public_key |
+| `privacy` | tag_for_under_age_of_consent |
+| `game_services` | android_game_id, android_mode, android/ios_native_verified, timeout_seconds, leaderboard_ids, achievement_ids |
+| `products.json` | logical ID → type, android, onestore, ios |
+
+운영 ID·공개 키는 Git 제외 `config/android.local.cfg`, `config/game_services.local.cfg`에 둡니다. exporter가 허용한 키만 빌드에 주입합니다.
 
 orientation: `sensor`, `portrait`, `landscape`, `sensor_portrait`, `sensor_landscape`.
 템플릿 기본은 sensor이며 특정 방향을 고정하지 않습니다. 실제 launch orientation도 맞추려면 동기화가 필요합니다.
@@ -163,14 +178,15 @@ orientation: `sensor`, `portrait`, `landscape`, `sensor_portrait`, `sensor_lands
 godot --headless --path . --script res://tools/configure.gd
 ```
 
-이 도구는 이름·버전·orientation을 `project.godot`에, package/bundle/version을 `export_presets.cfg`에 반영합니다.
-기존 signing, Gradle 선택 및 build number는 유지합니다. Android version code와 iOS build number는 스토어 제출마다 별도 증가시킵니다.
+이 도구는 이름·버전·orientation을 `project.godot`에, package/bundle/version/build_number를 모든 Android·iOS preset에 반영합니다.
+`Android Google Play`(AAB)·`Android ONE store`(APK) preset이 없으면 만들고, Gradle·SDK 포함 옵션을 기능 플래그와 스토어 규칙에 맞춥니다.
+signing 설정과 진단(`probe`) preset은 유지합니다. 스토어 제출마다 `build_number`를 올리고 다시 실행합니다. 자세한 내용은 [STORE_RELEASE.md](STORE_RELEASE.md).
 플래그는 시작 시 적용되므로 변경 후 앱을 재시작하세요.
 
 ## Android Setup
 
-아래 값은 [Godot 4.7 공식 export 안내](https://docs.godotengine.org/en/4.7/tutorials/export/exporting_for_android.html)의 요구사항입니다.
-실제 설치·검증 toolchain BOM과는 구분합니다.
+아래 값은 [Godot 4.7 공식 export 안내](https://docs.godotengine.org/en/4.7/tutorials/export/exporting_for_android.html)의 최소 요구사항입니다.
+네이티브 SDK·Gradle export는 실제로 **compile/target SDK 36, Build-Tools 36.1.0, min SDK 24**로 검증했으므로 Platform 36과 Build-Tools 36.1.0도 설치합니다.
 
 | 도구 | 문서 기준 |
 | --- | --- |
@@ -199,10 +215,9 @@ Gradle build template은 **Project 메뉴**에서 설치합니다. 일반 export
 기본 preset은 진동용 `VIBRATE`를 사용합니다. 네이티브 SDK 포함 시 AAR manifest의 네트워크·광고·Billing 권한이 병합됩니다.
 실제 배포 권한은 최종 merged manifest로 확인합니다. Android 세 SDK 동시 export 절차는 [ANDROID_SERVICES.md](ANDROID_SERVICES.md)를 따릅니다.
 
-Billing은 3.3.0 후보를 태그 고정 후 `addons/GodotGooglePlayBilling/`에 설치·활성화하고 Adapter를 추가하는 후속 작업입니다.
-현재 네이티브 검증 template은 compile/target SDK 36, Build-Tools 36.1.0, min SDK 24를 사용합니다. 초기 조사 표의 SDK35와 구분합니다.
+Billing·AdMob·Play Games AAR는 `addons/android_services/`, `addons/play_game_services/`에 설치돼 있습니다. 설정과 계약은 [ANDROID_SERVICES.md](ANDROID_SERVICES.md)를 따릅니다.
 Play Console 상품을 `products.json`과 연결하고 내부 테스트 트랙·테스터로 구매/복원을 검증합니다.
-AdMob 역시 후속 adapter에서 테스트 App ID/unit ID를 사용하며 production ID를 여기 포함하지 않습니다.
+AdMob은 Google 샘플 ID(`use_test_ads=true`)로 시작하며 production ID는 Git 제외 로컬 설정에만 둡니다.
 
 Signing 키는 저장소 밖에서 관리합니다. release는 debug 키를 쓰지 않습니다.
 Godot의 `GODOT_ANDROID_KEYSTORE_RELEASE_PATH`, `GODOT_ANDROID_KEYSTORE_RELEASE_USER`,
@@ -252,7 +267,7 @@ App.billing.restore_purchases()
 ```
 
 상품 타입은 `consumable`, `non_consumable`, `subscription`입니다.
-게임은 logical ID만 전달하고 서비스가 플랫폼 Store ID를 조회합니다.
+게임은 logical ID만 전달하고 서비스가 현재 스토어(`GameConfig.store()`: google_play / onestore / app_store)의 Store ID를 조회합니다.
 구매/복원은 한 번에 하나만 허용하며 누락 상품은 `invalid_product`로 실패합니다.
 
 - `purchase_completed(product_id, transaction)`
@@ -264,6 +279,8 @@ Mock transaction 필드: `transaction_id`, `product_id`, `store_id`, `type`, `mo
 Mock 복원은 **현재 실행 세션**의 비소모성/구독 상품만 포함합니다. 소모성 상품은 제외합니다.
 Android native는 가격·offer 조회, pending, 취소, 복원과 acknowledge/consume을 연결합니다.
 `transaction_received`는 미검증 수신입니다. 게임/서버가 검증·중복 지급 방지·저장을 마친 뒤 `finish_purchase(token)`을 호출합니다.
+Android native는 앱 시작·재개 때 보유 구매를 조용히 다시 조회해 미완료 거래를 `transaction_received`로 다시 보냅니다(restore 신호 없음).
+신호를 연결하기 전에 도착한 거래는 `App.billing.get_unfinished_transactions()`로 확인합니다. 예제: [examples/purchase_ledger](../examples/purchase_ledger/README.md).
 자동 영수증 검증 서버와 게임별 보상·구독 갱신/만료 정책은 포함하지 않습니다. [구매 API 계약](ANDROID_SERVICES.md#google-play-billing-계약)을 따릅니다.
 게임의 보상·영구 권한은 게임 저장 구조에서 관리하며 같은 transaction을 재수신해도 중복 지급하지 않도록 구현합니다.
 
@@ -339,14 +356,15 @@ AudioManager는 BGM 한 개, SFX/UI 최대 16개를 재생합니다. 반복은 A
 mkdir -p build/android build/ios
 godot --headless --path . --script res://tools/configure.gd
 godot --headless --path . --export-debug Android build/android/game.apk
-godot --headless --path . --export-release Android build/android/game.apk
+godot --headless --path . --export-release 'Android Google Play' build/android/game-google-play.aab
+godot --headless --path . --export-release 'Android ONE store' build/android/game-onestore.apk
 godot --headless --path . --export-debug iOS build/ios/game.zip
 ```
 
-Android 명령은 기본 APK preset 기준입니다. Play Store용은 Gradle을 켜고 export format을 AAB로 바꾼 뒤 `.aab`로 export합니다.
+`Android`는 개발용 APK preset(Gradle 없음)입니다. 스토어 업로드는 `Android Google Play`(AAB)와 `Android ONE store`(APK)를 사용하며, 두 preset 모두 Android Build Template이 필요합니다.
 iOS release는 Xcode signing/archive까지 수행해야 완료입니다.
-`config/game.cfg`, `products.json`은 패키지에 포함되고 `tests/`, `tools/`, `docs/`, 로컬 설정은 제외됩니다.
-Demo/음원은 기본 검증용이므로 새 게임의 release export에서 제외하세요. 파일을 삭제하면 통합 검사가 실패합니다.
+`config/game.cfg`, `products.json`은 패키지에 포함되고 `tests/`, `tools/`, `docs/`, `examples/`, `native/`, 로컬 설정은 제외됩니다.
+`main_scene`이 데모가 아니면 iOS·스토어 preset에서 데모 장면·진단 장면·`assets/demo/`가 자동 제외됩니다. 파일 자체를 삭제하면 통합 검사가 실패합니다.
 
 2026-09-16 최초 export는 SDK/template 부재로 실패했습니다. 이후 Android 실기기 실행과 Mock 테스트는 사용자 확인을 받았습니다.
 2026-10-21 Android 네이티브 export·기기 결과는 [검증 기록](template/VALIDATION.md)을 따릅니다. 실제 스토어 구매·계정 기능과 iOS는 미검증입니다.
@@ -376,7 +394,8 @@ release 절차: 버전·변경 기록 갱신 → 통합 검사 → 기본 브랜
 - SafeArea는 전체화면 모바일 canvas 기준입니다. 다중 창/특수 viewport는 게임에서 보완해야 합니다.
 - SceneManager는 두 프레임 뒤 메인 스레드에서 로드합니다. 큰 장면은 일시 정지가 있을 수 있으며 streaming은 범위 밖입니다.
 - UMP 광고 자격과 분석 동의를 분리합니다. 실제 앱의 required 동의 UI·거부·개인정보 선택 변경은 추가 기기 검증이 필요합니다. iOS ATT는 미설치입니다.
-- 배너·미디에이션, 게임/서버의 결제 검증·지급 기록과 구독 정책은 후속 작업입니다.
+- 배너·미디에이션, 서버 결제 검증과 구독 갱신·만료 정책은 후속 작업입니다. 로컬 지급 기록은 예제로만 제공합니다.
+- ONE store 결제는 플러그인 소스·컴파일·가짜 SDK 검사까지입니다. iOS 결제·광고·Game Center native는 미설치입니다.
 - Settings 언어 선택만 제공하며 데모 전체 번역은 포함하지 않습니다.
 - 프레임워크는 게임별 데이터·보상·entitlement를 정의하지 않습니다.
 

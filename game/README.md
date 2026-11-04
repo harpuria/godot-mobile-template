@@ -26,5 +26,6 @@ func before_app_initialize() -> void:
 		return old)
 ```
 
-게임은 transaction_id 기준 중복 지급 방지와 영구 entitlement 정책을 정의해야 합니다.
+게임은 purchase_token(native)·transaction_id(Mock) 기준 중복 지급 방지와 영구 entitlement 정책을 정의해야 합니다.
+시작점: `examples/purchase_ledger/purchase_ledger.gd`를 이 디렉터리로 복사해 지급 규칙을 고칩니다. ([예제 안내](../examples/purchase_ledger/README.md))
 Mock transaction은 실제 결제 증거가 아닙니다. 데모 자료는 scenes/와 assets/demo/에 있습니다.
