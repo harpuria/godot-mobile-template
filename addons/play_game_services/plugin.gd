@@ -46,10 +46,14 @@ class PlayGamesExport extends EditorExportPlugin:
 		return '<meta-data android:name="com.google.android.gms.games.APP_ID" android:value="@string/pgs_game_id"/>'
 
 	## 로컬 설정은 export에만 주입하고 소스 config나 다른 Android 리소스를 덮어쓰지 않는다.
-	func _export_begin(_features: PackedStringArray, _debug: bool, _path: String, _flags: int) -> void:
+	func _export_begin(features: PackedStringArray, debug: bool, _path: String, _flags: int) -> void:
 		if not get_export_platform() is EditorExportPlatformAndroid or not get_option("game_services/include_sdk"):
 			return
+		if features.has("onestore"):
+			push_warning("ONE store preset includes Play Games SDK; ONE store builds normally disable game_services/include_sdk")
 		var config := _build_config()
+		if not debug and not _valid_id(str(config.get_value("game_services", "android_game_id", ""))):
+			push_warning("Release export includes Play Games SDK without a Game ID; sign-in will be unavailable")
 		add_file("res://config/game_services.build.cfg", config.encode_to_text().to_utf8_buffer(), false)
 		var directory := str(get_option("gradle_build/gradle_build_directory"))
 		if directory.is_empty():

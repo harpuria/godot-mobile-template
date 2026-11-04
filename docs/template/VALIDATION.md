@@ -1,5 +1,34 @@
 # Validation
 
+## 스토어 배포 준비 0.4.0 — 2026-11-04 Agent 검증
+
+Linux x86_64 cloud container, Godot `4.7.2.stable.official.ed1daf0bf`(공식 Linux 빌드, zip SHA-256 `cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4`)로 headless 검사했다.
+**Desktop·컴파일 검사이며 Android/iOS export, 실기기, 스토어 계정 검증은 하지 않았다.** 이 환경에는 Android SDK·export templates·macOS가 없다.
+
+| 검사 | 실제 결과 |
+| --- | --- |
+| 변경 전 기준 import / 통합 / `--disabled` / `--native` | exit 0; **163 / 13 / 13 checks, 0 failures**, ERROR·WARNING 로그 없음 |
+| 최종 editor import | exit 0, `SCRIPT ERROR`·`Parse Error` 없음 |
+| 최종 headless 통합 | **185 checks, 0 failures**, exit 0 |
+| 최종 `--disabled` / `--native` | **13 / 13 checks, 0 failures**, exit 0 |
+| configure 재실행 | `project.godot`·`export_presets.cfg` 변화 없음(idempotent), editor import 후에도 preset 유지 |
+| configure 데모 제외(임시 `main_scene=res://game/main.tscn`, 확인 후 복원) | iOS·스토어 preset exclude filter에 데모·진단·`assets/demo/*` 추가, 개발용 Android preset은 유지 |
+| 문서 링크 `tools/check_docs.py` | 21개 Markdown, 깨진 링크 0 (변경 전 1건 발견·수정) |
+| GodotOneStoreIap `javac --release 17` (JDK 21.0.12) | 성공. 경고는 Godot AAR의 Kotlin metadata 누락뿐 |
+| `native/android/onestore_iap/build.sh` | AAR 생성(AndroidManifest·classes.jar·R.txt), SDK SHA-256 검사가 손상 파일을 거부함을 확인 |
+| CI workflow | 같은 명령을 로컬 bash(`-eo pipefail`)로 재현해 통과. GitHub Actions 실제 실행은 push 후 확인 필요 |
+
+추가된 22개 검사: 시작 sync·silent 처리·미완료 거래 조회, resume sync가 restore 신호를 보내지 않음,
+스토어별 상품 ID와 ONE store의 Google ID 미대체, ONE store 계약 불일치 거절, 공개 키 설정 순서, 로그인 필요 실패 이유,
+ONE store 수신→finish→acknowledge, 구매 예제의 늦은 거래 처리·중복 지급 방지·저장 실패 시 finish 금지와 롤백·Mock·복원.
+
+컴파일 classpath: Maven Central `org.godotengine:godot:4.7.2.stable` AAR, ONE store `sdk-iap 21.04.00`·`sdk-auth 1.2.2`·`sdk-base 1.2.2`(SHA-1이 Maven Central `.sha1`과 일치),
+Android API stub `com.google.android:android:4.1.1.4`. 실제 배포 빌드는 Android SDK Platform 36의 `android.jar`를 사용해야 한다.
+다운로드한 Kotlin 컴파일러 실행이 이 환경의 권한 검사로 거부되어, 플러그인을 Kotlin 대신 Java로 작성하고 시스템 JDK로 검사했다.
+
+남은 실제 검증: `Android Google Play` AAB export와 Play Console 업로드(target API·16 KB 검사), ONE store AAR 포함 export·기기 결제·로그인·업데이트 흐름,
+Android 16 edge-to-edge·predictive back, iOS Xcode 26 export·업로드. `v0.2.0`·`v0.3.0` 태그는 로컬에서 만들었지만 이 세션의 권한으로 push하지 못했다.
+
 ## Android 3건 통합 0.3.0 — 2026-10-21 Agent 검증
 
 Godot는 `4.7.2.stable.official.ed1daf0bf`를 유지했다.
@@ -189,7 +218,7 @@ iOS entitlement는 계속 false다. Team ID, 전체 Xcode, 4.7.2용 GameCenter x
 
 두 플랫폼의 실제 로그인·업적·리더보드, UI 동작, 오프라인/재개/인증 해제, release Mock 차단 및 기기 검증이 남아 있다.
 네이티브 플러그인은 저장소 지침에 따라 설치를 보류했고 플랫폼별 native gate는 false다.
-설치/검증 대상과 API 제한은 [DEPENDENCIES.md](../DEPENDENCIES.md#게임-서비스-후보--2026-10-01),
+설치/검증 대상과 API 제한은 [DEPENDENCIES.md](../DEPENDENCIES.md#게임-서비스-최초-도입-기록--2026-10-01),
 [GAME_SERVICES.md](../GAME_SERVICES.md)에 기록했다.
 
 재현 명령의 `godot`가 PATH에 없다면 `/Applications/Godot.app/Contents/MacOS/Godot`를 사용한다.

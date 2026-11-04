@@ -13,6 +13,9 @@
 ## Boundaries
 
 - Game-specific code belongs under `game/`.
+- `examples/` holds reference implementations (e.g. purchase ledger). Copy them into `game/` and adapt; game code must not load files from `examples/`.
+- `native/` holds template-owned native plugin sources. Build outputs go to `addons/` and stay out of Git until device-verified.
+- Store submission steps live in `docs/STORE_RELEASE.md`. Keep one store per Android export preset; never ship Google Play Billing in a ONE store build.
 - Do not access mobile plugins directly from game code.
 - Use AdsService (`App.ads`) for advertisements.
 - Use BillingService (`App.billing`) for IAP.

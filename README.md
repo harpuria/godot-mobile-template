@@ -4,12 +4,13 @@ Project: godot-mobile-template
 Godot: 4.7.2  
 Language: GDScript  
 Targets: Android / iOS  
-Template Version: 0.3.0
+Template Version: 0.4.0
 
 모바일 게임을 만들 때 쓰는 **시작용 프로젝트**다.
 저장, 소리, 화면 이동 기능이 들어 있다. `game/` 폴더에 게임을 만들면 된다.
 
 Android 실행과 Mock 연습 기능을 제공한다. Android 네이티브 GPGS·결제·AdMob·UMP도 고정 버전으로 연결했다.
+Google Play(AAB)와 ONE store(APK) 배포 preset이 있고, ONE store 결제 플러그인은 소스로 포함한다(기기 미검증).
 실제 검증 범위와 남은 스토어 계정 검사는 [검증 기록](docs/template/VALIDATION.md)을 따른다. iOS 네이티브 바이너리는 미설치다.
 
 ## 1. 먼저 실행해 보기
@@ -89,6 +90,15 @@ Android Play Games v3.4.0 플러그인을 설치했고 Android 16에서 Debug·R
 실제 계정·업적·리더보드는 Play Console 설정 후 검증해야 한다. iOS 플러그인은 아직 미설치다.
 [게임 서비스 안내](docs/GAME_SERVICES.md)에서 설정과 네이티브 통합 요건을 확인한다.
 
+## 5. 스토어에 올리기
+
+[스토어 배포 안내](docs/STORE_RELEASE.md)의 점검표를 따른다. 요약:
+
+- `config/game.cfg`의 `build_number`를 올리고 configure를 실행하면 `Android Google Play`(AAB), `Android ONE store`(APK), `iOS` preset이 갱신된다.
+- 게임 장면이 데모가 아니면 배포 preset에서 데모 파일이 빠진다.
+- 구매 지급은 [구매 처리 예제](examples/purchase_ledger/README.md)를 `game/`으로 복사해 시작한다.
+- iOS는 결제·광고 native가 없어 수익화 게임을 아직 출시할 수 없다. ONE store는 [ONE store 연동](docs/ONESTORE.md)에서 AAR를 만든다.
+
 ## 잘 안 될 때
 
 | 문제 | 먼저 해 볼 것 |
@@ -106,13 +116,15 @@ Android Play Games v3.4.0 플러그인을 설치했고 Android 16에서 Debug·R
 | 구성 | 버전 |
 | --- | --- |
 | Godot / 내장 GDScript | 4.7.2 |
-| 이 템플릿 | 0.3.0 ([변경 기록](docs/template/CHANGELOG.md)) |
+| 이 템플릿 | 0.4.0 ([변경 기록](docs/template/CHANGELOG.md)) |
 | Android 결제 플러그인 | [GodotGooglePlayBilling 3.3.0](https://github.com/godot-sdk-integrations/godot-google-play-billing/releases/tag/3.3.0), MIT; Google Billing `9.1.0`; Gradle export opt-in, 스토어 구매 미검증 |
 | Android 광고 플러그인 | [Poing AdMob 5.1.0](https://github.com/poingstudios/godot-admob-plugin/releases/tag/v5.1.0), MIT; Google Next-Gen Ads `1.4.0`, UMP `4.0.0`, ConstraintLayout `2.2.0` (Apache-2.0); Gradle export opt-in |
 | 게임 서비스 Service / Mock / Adapter | 템플릿 내 GDScript 구현, 실제 계정 기능 미검증 |
 | Android Play Games plugin | [v3.4.0](https://github.com/godot-sdk-integrations/godot-play-game-services/releases/tag/v3.4.0), MIT; 4.7.2 Debug·Release 기기 로딩 통과, 계정 미검증 |
 | Android native SDK | Google `play-services-games-v2:22.1.0` ([약관](https://developers.google.com/terms)), `gson:2.14.0` (Apache-2.0); Gradle export opt-in |
+| ONE store 결제 | 템플릿 내 `GodotOneStoreIap` 소스(로컬 빌드, Git 제외 AAR); ONE store IAP SDK `21.04.00` / sdk-auth·sdk-base `1.2.2` ([ONE store SDK 약관](https://m.onestore.co.kr/common/license/ONESTORE_SDK_TERMS.html)); 기기 미검증 |
 | iOS Game Center | 바이너리 미설치; [고정 소스·호환성 기록](docs/DEPENDENCIES.md#게임-서비스-최초-도입-기록--2026-10-01) |
+| CI | GitHub Actions `actions/checkout` v5.0.1 (commit 고정, MIT); Godot 4.7.2 Linux 공식 빌드 SHA-256 확인 |
 
 간접 의존성의 정확한 해결 버전은 [Android Gradle graph](docs/ANDROID_SERVICES_DEPENDENCIES.txt)에 기록한다.
 Billing SDK가 요구하는 Kotlin runtime은 `2.2.10`(Apache-2.0)으로 해결됐고, 기준 template의 Kotlin Gradle plugin `2.1.21`은 유지한다.
@@ -123,6 +135,8 @@ Billing SDK가 요구하는 Kotlin runtime은 `2.2.10`(Apache-2.0)으로 해결�
 - [게임 서비스 안내](docs/GAME_SERVICES.md): 로그인·업적·리더보드 API, Mock 및 네이티브 연결 요건
 - [Android Play Games 설정](docs/ANDROID_PLAY_GAMES.md): Gradle 진단 빌드, Console ID·OAuth·테스터, 실기기 검증 절차
 - [Android 결제·광고·동의](docs/ANDROID_SERVICES.md): 고정 SDK, 로컬 설정, 구매 수신·검증·완료 계약, 샘플 광고 진단
+- [스토어 배포 안내](docs/STORE_RELEASE.md): Google Play·App Store·ONE store 요건, 배포 preset, 출시 점검표
+- [ONE store 연동](docs/ONESTORE.md): 플러그인 빌드, 설정, 기기 검증 항목
 - [도구·라이선스 기록](docs/DEPENDENCIES.md): 정확한 버전과 사용 조건
 - [템플릿 적용 절차](docs/template/APPLYING.md): 새 게임에 가져오기, 출처 기록, 버전 업데이트
 - [변경 기록](docs/template/CHANGELOG.md): 템플릿 버전별 변경 내용

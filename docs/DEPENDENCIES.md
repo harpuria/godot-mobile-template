@@ -1,6 +1,6 @@
 # Dependency 조사 및 Compatibility BOM
 
-최종 Android 통합 확인일: **2026-10-21**. 기준 엔진: **Godot 4.7.2**, Template: **0.3.0**.
+최종 Android 통합 확인일: **2026-10-21**. 최신 버전 재확인일: **2026-11-04**. 기준 엔진: **Godot 4.7.2**, Template: **0.4.0**.
 초기 조사는 2026-09-16, GPGS 최초 설치는 2026-10-01이다. 날짜별 실제 검사 결과는 [VALIDATION.md](template/VALIDATION.md)를 따른다.
 
 ## 상태의 의미
@@ -11,12 +11,12 @@
 - **Unverified**: 해당 기능을 실제 스토어·계정·기기 조합으로 확인하지 않았다.
 - **Experimental / Unknown**: API 개발 중 또는 정확한 조합을 공개 자료로 확인하지 못했다.
 
-## 채택 BOM — Mobile Template BOM v0.3.0
+## 채택 BOM — Mobile Template BOM v0.4.0
 
 | 구성 | 고정 버전 | 플랫폼 | 상태 / 호환성 근거 |
 | --- | --- | --- | --- |
 | Godot / GDScript | 4.7.2 | All | Locked; 엔진 버전 유지 |
-| 공통 Service / Mock / Adapter | Template 0.3.0 | All | In-repo |
+| 공통 Service / Mock / Adapter | Template 0.4.0 | All | In-repo |
 | Godot Play Game Services | v3.4.0 | Android | MIT, AAR 유지; SDK 갱신 후 JNI·기기 로딩 확인, 계정 기능 미검증 |
 | Google Play Games Services v2 | 22.1.0 | Android | Installed, export opt-in |
 | Gson | 2.14.0 | Android | Apache-2.0, Java 8+/Android API 21+ |
@@ -27,9 +27,13 @@
 | Google UMP | 4.0.0 | Android | Ads의 전이 의존성; 갱신 후 광고 자격 확인 |
 | AndroidX ConstraintLayout | 2.2.0 | Android | Apache-2.0; Poing Android exporter 고정 의존성 |
 | Kotlin runtime (전이 의존성) | 2.2.10 | Android | Billing 9.1.0이 요구; Apache-2.0, export·기기 결과는 VALIDATION 참고 |
+| GodotOneStoreIap | Template 0.4.0 소스 | Android (ONE store) | 템플릿 소유 Java 소스, `build.sh`로 로컬 AAR 생성(Git 제외); 컴파일·가짜 SDK 계약만 확인, **Unverified** |
+| ONE store IAP SDK (`com.onestorecorp.sdk:sdk-iap`) | 21.04.00 | Android (ONE store) | Maven Central; 전이 의존성 sdk-auth 1.2.2 → sdk-base 1.2.2; [ONE store SDK 약관](https://m.onestore.co.kr/common/license/ONESTORE_SDK_TERMS.html), 오픈소스 아님 |
 | iOS native plugins | 없음 | iOS | Game Center / IAP / 광고 바이너리 미설치 |
+| GitHub Actions `actions/checkout` | v5.0.1 (`93cb6efe18208431cddfb8368fd83d5badbf9bfd`) | CI | MIT; commit SHA 고정 |
 
-기본 Android preset은 SDK를 포함하지 않는다. `game_services/include_sdk`, `billing/include_sdk`, `ads/include_sdk`는 모두 false다.
+개발용 `Android` preset은 SDK를 포함하지 않는다. `game_services/include_sdk`, `billing/include_sdk`, `billing/onestore_include_sdk`, `ads/include_sdk`는 모두 false다.
+스토어 preset(`Android Google Play`, `Android ONE store`)은 configure가 기능 플래그에 맞춰 SDK를 포함한다. ONE store preset은 Google Billing·Play Games를 넣지 않는다.
 기능별 native gate도 false다. 설치·빌드·샘플 광고 검증을 실제 스토어 구매/계정 인증 완료로 확대 해석하지 않는다.
 운영 ID·서명·비밀은 Git 밖에서 관리한다. [설정과 API 계약](ANDROID_SERVICES.md).
 
@@ -69,6 +73,32 @@
 - Google Billing, Play Games, Ads, UMP는 각 Google SDK 약관을 따르며 MIT 플러그인 라이선스와 별개다. [Google 약관](https://developers.google.com/terms).
 - Kotlin runtime은 Billing SDK에 의해 2.2.10으로 해결됐다. [Kotlin 소스·Apache-2.0](https://github.com/JetBrains/kotlin/tree/v2.2.10). Godot template의 Kotlin Gradle plugin 2.1.21을 업그레이드하지 않았다.
 - [실제 Android 의존성 graph](ANDROID_SERVICES_DEPENDENCIES.txt), [검증 결과](template/VALIDATION.md)를 따른다.
+
+## 최신 버전 재확인 — 2026-11-04
+
+업그레이드하지 않고 upstream 최신 상태만 대조했다.
+
+| 구성 | 채택 | 확인한 최신 | 결정 |
+| --- | --- | --- | --- |
+| Godot | 4.7.2 | 4.7.2 stable(2026-08-18), 4.8 beta 2 | 유지. 4.8 stable과 패치 이후 검증 gate를 거쳐 검토 |
+| Godot Play Game Services | v3.4.0 | v3.4.0 (git tag) | 최신 |
+| GodotGooglePlayBilling / Billing | 3.3.0 / 9.1.0 | 3.3.0 / 9.1.0 | 최신. Play의 Billing 8.0+ 요건(2026-08-31) 충족 |
+| Poing AdMob / Next-Gen Ads | 5.1.0 / 1.4.0 | 5.1.0 stable(5.2.0은 nightly) / 1.4.0 | 최신 stable |
+| play-services-games-v2 | 22.1.0 | 22.1.0 | 최신 |
+| Gson | 2.14.0 | Maven Central 2.15.0 | 유지. 기기 검증 없이 올리지 않는다 |
+| ONE store IAP SDK | 21.04.00 | 21.04.00 (Maven Central, 2026-03-30) | 신규 채택 |
+| StoreKit2 / Godot AdMob / In-app Review | 보류 | v0.2 / v7.0 / v5.3 | 아래 후보 기록과 동일 |
+
+### ONE store IAP — 2026-11-04
+
+- 공식 SDK: [ONE-store/onestore_iap_release](https://github.com/ONE-store/onestore_iap_release)(샘플은 Apache-2.0)가 안내하는 `com.onestorecorp.sdk:sdk-iap:21.04.00`. Maven Central에서 해결하므로 별도 저장소를 추가하지 않는다.
+- SHA-256: `sdk-iap-21.04.00.aar` `608777efe504c99956f51f7714e528ba35bd8cc41f865681d6da353b48c437ec`,
+  `sdk-auth-1.2.2.aar` `410adca2d7f747a6b131e0bc0708c4fc1cb3acefc115f06c716a83246dce11ac`,
+  `sdk-base-1.2.2.aar` `3a3684727c6a6a60fe36be5b871df2f5b29dc893d0ea365defd334ba435cd12c`. 각 파일의 SHA-1은 Maven Central `.sha1`과 일치했다.
+- SDK manifest: min SDK 16, `ProxyActivity`, IAP API v7. 권한을 추가하지 않는다.
+- 공식 Godot 플러그인이 없어 `native/android/onestore_iap/`에 Godot plugin v2 Java 소스를 작성했다. GodotGooglePlayBilling 3.3.0 JNI 계약을 그대로 제공하고, 로그인은 deprecated된 `launchLoginFlowAsync` 대신 sdk-auth의 `GaaSignInClient`를 쓴다.
+- 컴파일 검사: JDK 21 `javac --release 17`, Godot `org.godotengine:godot:4.7.2.stable` AAR(SHA-256 `8791eecfe7c96a4de2d188a0bccfe9b83b92589a5a6825847473416a990e8629`)의 classes, SDK 세 개, Android API stub. 경고는 Godot AAR의 Kotlin metadata 누락뿐이다.
+- 기기·ONE store sandbox 결제는 하지 않았다. 검증 전에는 AAR를 커밋하지 않고 `android_native_verified`를 운영 빌드에서 열지 않는다. 절차: [ONESTORE.md](ONESTORE.md).
 
 ## 다음 Native BOM 후보 — 아직 설치하지 않음
 

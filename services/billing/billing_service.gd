@@ -53,11 +53,8 @@ func purchase(product_id: String, options: Dictionary = {}) -> void:
 	if product.is_empty() or product.get("type", "") not in ["consumable", "non_consumable", "subscription"]:
 		purchase_failed.emit(product_id, "invalid_product")
 		return
-	var platform := "ios" if MobilePlatform.current() == "iOS" else "android"
-	product["store_id"] = product.get(platform, "")
-	if platform == "android":
-		var overrides: Dictionary = GameConfig.value("billing", "android_product_ids", {})
-		product["store_id"] = overrides.get(product_id, product.store_id)
+	product["store"] = GameConfig.store()
+	product["store_id"] = GameConfig.store_product_id(product_id)
 	if str(product.store_id).is_empty():
 		purchase_failed.emit(product_id, "missing_store_id")
 		return
@@ -80,6 +77,11 @@ func finish_purchase(purchase_token: String) -> Error:
 	if not enabled:
 		return ERR_UNAVAILABLE
 	return adapter.finish_purchase(purchase_token)
+
+## 신호 연결 전에 수신된 미검증 거래를 포함해 finish 대기 거래를 반환한다.
+## 게임은 시작 시 transaction_received를 연결한 뒤 이 목록도 같은 검증 경로로 처리한다.
+func get_unfinished_transactions() -> Array:
+	return adapter.get_unfinished_transactions() if enabled else []
 
 ## 구매와 복원 작업은 한 번에 하나만 허용한다.
 func restore_purchases() -> void:

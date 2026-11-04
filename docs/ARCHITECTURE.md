@@ -1,4 +1,4 @@
-# Architecture — Mobile Template 0.3.0
+# Architecture — Mobile Template 0.4.0
 
 ## Layer 책임
 
@@ -16,8 +16,9 @@ External Plugin / Native SDK
 
 - **Game (`game/`)**: 게임 규칙, 보상, 저장 데이터 schema, 상품별 entitlement와 중복 지급 정책.
 - **Service (`services/`)**: 게임 친화적인 요청/결과 신호, feature flag, 동의 gate, logical product mapping, 동시 작업 제어.
-- **Adapter**: SDK 호출, SDK 상태/콜백을 공통 결과로 변환. 광고·결제·동의는 Mock/unavailable와 Android native 구현을 제공한다. Android SDK는 export opt-in이고 검증 범위는 VALIDATION에 기록한다. iOS 바이너리는 미설치다.
+- **Adapter**: SDK 호출, SDK 상태/콜백을 공통 결과로 변환. 광고·결제·동의는 Mock/unavailable와 Android native 구현을 제공한다. 결제는 Google Play와 ONE store 어댑터가 같은 계약을 따른다. Android SDK는 export opt-in이고 검증 범위는 VALIDATION에 기록한다. iOS 바이너리는 미설치다.
 - **Plugin/SDK (`addons/`, 향후 iOS native 위치)**: 정확히 고정한 검증 dependency. game 코드에서 접근 금지.
+  템플릿이 직접 소유한 플러그인 소스는 `native/`에 두고 로컬 빌드 산출물만 `addons/`로 출력한다.
 
 App은 구성 지점이다. singleton 하나에 게임 규칙을 모으지 않으며 Service instance만 생성·소유한다.
 게임은 `App.ads` (AdsService), `App.billing` (BillingService), `App.analytics`, `App.privacy`, `App.review`, `App.game_services` (GameServicesService)를 사용한다.
@@ -58,7 +59,9 @@ JSON은 Resource/object 저장, 암호화, 서버 저장을 대신하지 않는�
 
 Ads: 요청 전 readiness 및 privacy 확인. 보상은 SDK reward callback을 검증한 completed에서만 발생해야 한다.
 Mock은 단일 busy 상태로 rewarded/interstitial 동시 표시를 차단한다.
-Billing: logical ID를 플랫폼 store ID로 매핑하고 상품 조회·구매·복원을 직렬화한다.
+Billing: logical ID를 현재 스토어(`GameConfig.store()`)의 store ID로 매핑하고 상품 조회·구매·복원을 직렬화한다.
+스토어는 빌드 단위로 고정한다. Android 스토어 구분은 export custom feature(`onestore`)이며 런타임에 바꾸지 않는다.
+Android native는 시작·재개 때 미완료 구매를 조용히 다시 수신한다(sync). sync는 restore 결과 신호를 보내지 않는다.
 Native는 transaction_received(미검증 수신) → 게임/서버 검증·지급 기록 저장 → finish_purchase → acknowledge/consume 완료 순서다.
 구매 성공은 거래 Dictionary로 전달하며 game이 entitlement 및 idempotency를 정의한다.
 Mock 복원은 세션 메모리의 비소모성/구독 거래만 반환한다.

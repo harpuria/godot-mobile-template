@@ -34,6 +34,18 @@ class BillingHarness extends AndroidBillingAdapter:
 		add_child(sdk)
 		_bind_plugin(sdk)
 
+class OneStoreSDK extends BillingSDK:
+	var public_key := ""
+	func setPublicKey(key: String) -> void:
+		public_key = key
+		calls.append(["key", key])
+
+class OneStoreHarness extends OneStoreBillingAdapter:
+	var sdk := OneStoreSDK.new()
+	func initialize() -> void:
+		add_child(sdk)
+		_bind_plugin(sdk)
+
 class CoreSDK extends Node:
 	signal on_initialization_complete(status: Dictionary)
 	var initializes := 0
@@ -103,6 +115,7 @@ var events: Array = []
 ## 계약 검사는 실기기·스토어 검증을 대신하지 않는다.
 func run(test: Node) -> void:
 	_billing(test)
+	_onestore(test)
 	await _ads_and_privacy(test)
 	for adapter in [AndroidBillingAdapter.new(), AndroidAdmobAdapter.new(), AndroidAdmobPrivacyAdapter.new()]:
 		test.add_child(adapter)
@@ -140,6 +153,12 @@ func _billing(test: Node) -> void:
 	service.restore_completed.connect(func(items: Array): events.append(["restored", items]))
 	service.products_updated.connect(func(items: Array): events.append(["products", items]))
 	service.products_failed.connect(func(reason: String): events.append(["products_failed", reason]))
+	test.check(sdk.calls.back() == ["restore", "inapp", false], "Billing start syncs owned purchases before any game request")
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": [_transaction("com.example.game.coin_small", "cold")]})
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": []})
+	test.check(events.size() == 1 and events.back()[0] == "received" and events.back()[2].purchase_token == "cold", "Cold-start sync re-delivers unfinished purchase for verification")
+	test.check(not service.busy and adapter._operation.is_empty(), "Silent sync releases billing without restore signal")
+	test.check(service.get_unfinished_transactions().size() == 1 and service.get_unfinished_transactions()[0].purchase_token == "cold", "Unfinished transactions remain queryable for late listeners")
 	service.purchase("REMOVE_ADS")
 	test.check(sdk.calls.back() == ["details", PackedStringArray(["com.example.game.remove_ads"]), "inapp"], "Billing queries mapped store product before launch")
 	sdk.query_product_details_response.emit({"response_code": 0, "product_details": [_detail("com.example.game.remove_ads")]})
@@ -214,6 +233,52 @@ func _billing(test: Node) -> void:
 	sdk.query_purchases_response.emit({"response_code": 0, "purchases": [_transaction("com.example.game.remove_ads", "restored")]})
 	sdk.query_purchases_response.emit({"response_code": 0, "purchases": []})
 	test.check(events.back()[0] == "received" and events.back()[2].purchase_token == "restored", "Restore re-delivers unfinalized transaction for verification retry")
+	var before := events.size()
+	adapter._notification(NOTIFICATION_APPLICATION_RESUMED)
+	test.check(sdk.calls.back() == ["restore", "inapp", false], "Resume syncs purchases silently")
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": []})
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": []})
+	var restored := events.slice(before).filter(func(event: Array) -> bool: return event[0] == "restored")
+	test.check(restored.is_empty() and adapter._operation.is_empty(), "Resume sync never emits unsolicited restore_completed")
+	service.queue_free()
+
+## ONE store 플러그인은 Google 결제와 같은 JNI 계약을 쓰되 상품 ID·공개 키·복구 오류가 다르다.
+func _onestore(test: Node) -> void:
+	test.check(GameConfig.store_product_id("REMOVE_ADS", "onestore") == "remove_ads" and GameConfig.store_product_id("REMOVE_ADS", "app_store") == "com.example.game.removeads", "Store-specific product IDs resolve per store")
+	test.check(GameConfig.store_product_id("UNKNOWN", "onestore").is_empty(), "Missing ONE store ID never falls back to Google Play ID")
+	var google_only := BillingHarness.new()
+	var mismatch := OneStoreBillingAdapter.new()
+	test.add_child(mismatch)
+	test.add_child(google_only.sdk)
+	mismatch._bind_plugin(google_only.sdk)
+	test.check(mismatch._plugin == null, "ONE store adapter rejects plugin without setPublicKey contract")
+	mismatch.queue_free()
+	google_only.sdk.queue_free()
+	google_only.free()
+	GameConfig.store_override = "onestore"
+	GameConfig.config.set_value("billing", "onestore_public_key", "test-public-key")
+	var service := BillingService.new()
+	test.add_child(service)
+	var adapter := OneStoreHarness.new()
+	service.initialize(true, adapter)
+	var sdk := adapter.sdk
+	var local: Array = []
+	service.purchase_failed.connect(func(id: String, reason: String): local.append(["failed", id, reason]))
+	service.transaction_received.connect(func(id: String, tx: Dictionary): local.append(["received", id, tx]))
+	test.check(sdk.calls[0] == ["key", "test-public-key"] and sdk.calls[1] == ["init"], "ONE store public key is set before initPlugin")
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": []})
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": []})
+	service.purchase("REMOVE_ADS")
+	test.check(sdk.calls.back() == ["details", PackedStringArray(["remove_ads"]), "inapp"], "ONE store purchase uses onestore product ID")
+	sdk.query_product_details_response.emit({"response_code": 10, "product_details": []})
+	test.check(local.back() == ["failed", "REMOVE_ADS", "store_login_required"] and not service.busy, "ONE store login requirement surfaces recoverable reason")
+	service.purchase("REMOVE_ADS")
+	sdk.query_product_details_response.emit({"response_code": 0, "product_details": [_detail("remove_ads")]})
+	sdk.on_purchase_updated.emit({"response_code": 0, "purchases": [_transaction("remove_ads", "os-token")]})
+	test.check(local.back()[0] == "received" and local.back()[2].store_id == "remove_ads" and not local.back()[2].verified, "ONE store purchase enters the same verification step")
+	test.check(service.finish_purchase("os-token") == OK and sdk.calls.back() == ["acknowledge", "os-token"], "ONE store non-consumable acknowledges after game confirmation")
+	GameConfig.store_override = ""
+	GameConfig.config.set_value("billing", "onestore_public_key", "")
 	service.queue_free()
 
 func _ads_and_privacy(test: Node) -> void:

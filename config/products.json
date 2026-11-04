@@ -1,6 +1,6 @@
 {
-  "REMOVE_ADS": {"type": "non_consumable", "android": "com.example.game.remove_ads", "ios": "com.example.game.removeads"},
-  "COIN_SMALL": {"type": "consumable", "android": "com.example.game.coin_small", "ios": "com.example.game.coinsmall"},
-  "COIN_LARGE": {"type": "consumable", "android": "com.example.game.coin_large", "ios": "com.example.game.coinlarge"},
-  "PREMIUM": {"type": "subscription", "android": "com.example.game.premium", "ios": "com.example.game.premium"}
+  "REMOVE_ADS": {"type": "non_consumable", "android": "com.example.game.remove_ads", "onestore": "remove_ads", "ios": "com.example.game.removeads"},
+  "COIN_SMALL": {"type": "consumable", "android": "com.example.game.coin_small", "onestore": "coin_small", "ios": "com.example.game.coinsmall"},
+  "COIN_LARGE": {"type": "consumable", "android": "com.example.game.coin_large", "onestore": "coin_large", "ios": "com.example.game.coinlarge"},
+  "PREMIUM": {"type": "subscription", "android": "com.example.game.premium", "onestore": "premium", "ios": "com.example.game.premium"}
 }

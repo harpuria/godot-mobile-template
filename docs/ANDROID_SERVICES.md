@@ -1,6 +1,6 @@
 # Android 결제·광고·동의 연동
 
-기준: Godot **4.7.2**, 템플릿 **0.3.0**. iOS 결제·광고 바이너리는 이번 변경에 포함하지 않는다.
+기준: Godot **4.7.2**, 템플릿 **0.4.0**. iOS 결제·광고 바이너리는 포함하지 않는다. ONE store 결제는 [ONESTORE.md](ONESTORE.md), 스토어 제출은 [STORE_RELEASE.md](STORE_RELEASE.md)를 따른다.
 게임은 `App.billing`, `App.ads`, `App.privacy`만 사용한다.
 SDK 설치, export 성공, 기기 로딩, 스토어 계정 기능 검증은 서로 다른 상태이며 실제 결과는 [검증 기록](template/VALIDATION.md)을 따른다.
 
@@ -18,9 +18,9 @@ SDK 설치, export 성공, 기기 로딩, 스토어 계정 기능 검증은 서�
 
 1. Godot **4.7.2.stable**과 일치하는 export templates 및 Android build template을 설치한다.
 2. Editor Settings에서 JDK **17**, Android SDK 경로를 설정한다. 기준 template의 compile/target SDK는 **36**, 최소 SDK는 **24**다.
-3. Android export preset을 복제하고 Gradle build를 켠다.
+3. 스토어 배포는 configure가 만든 `Android Google Play` preset(Gradle·AAB)을 쓴다. 진단·실험용이면 Android preset을 복제하고 Gradle build를 켠다.
 4. 필요한 기능의 `billing/include_sdk`, `ads/include_sdk`, `game_services/include_sdk`를 true로 선택한다.
-   기본 Android preset은 세 옵션 모두 false다.
+   개발용 `Android` preset은 세 옵션 모두 false이고, 스토어 preset은 configure가 기능 플래그에 맞춘다.
 5. Google Play 상품·테스터 설정과 아래 로컬 설정을 준비한다. 광고는 처음에 Google 샘플 ID를 사용한다.
 
 게임 서비스의 Console ID·OAuth 설정은 기존 [ANDROID_PLAY_GAMES.md](ANDROID_PLAY_GAMES.md)를 따른다.
@@ -69,6 +69,7 @@ GameConfig는 같은 whitelist만 읽는다. 앱 이름·main scene·다른 기�
 | `finish_purchase(purchase_token) -> Error` | 게임이 검증·중복 지급 방지·지급 기록 저장을 마친 뒤 호출 |
 | `purchase_completed(logical_id, transaction)` | 일회성 비소모성/구독 acknowledge 또는 소모성 consume 완료; `finished=true` |
 | `restore_purchases()` | inapp/subs 순차 조회. 미완료 소모성도 검증 이벤트로 복구하고 복원 목록에는 비소모성/구독만 넣음 |
+| `get_unfinished_transactions() -> Array` | 수신했지만 finish하지 않은 거래 사본. 신호 연결 전에 도착한 거래를 처리할 때 사용 |
 
 게임은 `transaction_received`에서 purchase token, package, product, 수량, 구매 상태와 entitlement를 서버에서 검증한다.
 검증된 지급 기록을 게임의 SaveManager schema 또는 서버에 내구성 있게 저장한 뒤 `finish_purchase()`를 호출한다.
@@ -81,7 +82,8 @@ GameConfig는 같은 whitelist만 읽는다. 앱 이름·main scene·다른 기�
 일반 offer가 유일하면 자동으로 선택한다. 후보가 여러 개이거나 선택한 옵션이 없으면 `purchase_options_required`로 거절한다.
 임의의 첫 가격·구독 offer로 결제하지 않는다. 구독 변경·업그레이드 API는 이번 공통 계약에 포함하지 않는다.
 
-SDK 연결은 첫 작업 시 시도하고 resume에서 보유 구매를 다시 조회한다.
+어댑터는 플러그인 연결 직후와 앱 resume마다 보유 구매를 조용히 조회(sync)한다. 앱이 꺼진 동안 완료된 구매도 3일 자동 환불 기한 전에 `transaction_received`로 다시 온다.
+sync는 `restore_completed`를 보내지 않으며 실패는 개발 로그로만 남긴다. sync 중 들어온 게임 요청은 `busy`로 실패하므로 재시도한다.
 취소·연결 오류·미조회 상품·native 오류·최종 처리 실패를 실패 신호로 보낸다.
 기본 timeout은 120초다. 응답에 요청 ID가 없으므로 timeout/연결 끊김 후 미완료 native 작업은 늦은 응답까지 잠근다.
 응답이 영원히 없으면 앱을 재시작해야 한다. 다음 요청을 이전 성공 콜백으로 완료시키지 않는다.
@@ -120,3 +122,11 @@ UMP 결과는 별도로 표시한다. Google 샘플 App ID로 UMP 설정 조회�
 광고는 UMP 갱신 결과가 허용됐을 때 자동으로 로드한다. UMP 오류가 나면 실제 AdMob 앱의 설정을 확인하고 다시 요청한다.
 NOT_REQUIRED에서의 성공은 동의 화면 표시·거부·개인정보 선택 변경 검증을 대신하지 않는다.
 Release 진단 APK 역시 별도 테스트 인증서로 서명하며 스토어 배포 signing과 구분한다.
+
+## Release export 경고
+
+Release export에서 exporter는 다음을 경고한다. 경고가 있는 산출물은 스토어에 올리지 않는다.
+
+- 결제·광고 SDK를 포함했지만 해당 native gate가 닫혀 있음(release에서 `unavailable`).
+- `ads/use_test_ads=true`로 Google 샘플 광고 App ID가 들어감.
+- Play Games SDK를 포함했지만 Game ID가 없음, 또는 ONE store preset에 Play Games SDK가 들어감.
