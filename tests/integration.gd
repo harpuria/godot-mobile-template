@@ -102,7 +102,10 @@ func _run() -> void:
 	AudioManager.play_sfx(tone)
 	AudioManager.play_ui(tone)
 	check(AudioManager.effect_players.size() == 2, "SFX and UI playback")
-	await get_tree().create_timer(0.4).timeout
+	# 0.25초 효과음이 끝나는 시점은 오디오 스레드 처리 시간에 따라 늦어질 수 있다. 고정 대기 대신 최대 3초까지 기다린다.
+	var cleanup_deadline := Time.get_ticks_msec() + 3000
+	while not AudioManager.effect_players.is_empty() and Time.get_ticks_msec() < cleanup_deadline:
+		await get_tree().create_timer(0.05).timeout
 	check(AudioManager.effect_players.is_empty(), "Finished effects cleaned up")
 	App.ads.rewarded_completed.connect(func(id: String): results.append(["reward", id]))
 	App.ads.rewarded_failed.connect(func(id: String, reason: String): results.append(["ad_error", id, reason]))
