@@ -1,0 +1,58 @@
+msgid ""
+msgstr ""
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8-bit\n"
+
+msgid "GAME_TITLE"
+msgstr "Tap Sprint"
+
+msgid "START"
+msgstr "Start"
+
+msgid "BEST_SCORE"
+msgstr "Best: %d"
+
+msgid "SCORE"
+msgstr "Score: %d"
+
+msgid "TIME_LEFT"
+msgstr "Time: %d"
+
+msgid "TAP"
+msgstr "Tap!"
+
+msgid "PAUSE"
+msgstr "Pause"
+
+msgid "RESUME"
+msgstr "Resume"
+
+msgid "QUIT_TO_TITLE"
+msgstr "Back to title"
+
+msgid "RETRY"
+msgstr "Retry"
+
+msgid "NEW_BEST"
+msgstr "New best!"
+
+msgid "SAVE_RECOVERY_MESSAGE"
+msgstr "Your save data could not be loaded."
+
+msgid "SAVE_RECOVERY_RETRY"
+msgstr "Try again"
+
+msgid "SAVE_RECOVERY_RESET"
+msgstr "Start new game"
+
+msgid "SAVE_RECOVERY_CONFIRM"
+msgstr "Tap again to erase progress"
+
+msgid "SAVE_RECOVERY_RETRY_FAILED"
+msgstr "Still unable to load the save data."
+
+msgid "SAVE_RECOVERY_RESET_FAILED"
+msgstr "Could not write new save data."
+

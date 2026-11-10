@@ -51,5 +51,12 @@ jobs:
             if grep -E "SCRIPT ERROR|Parse Error|FAIL:" "$log"; then exit 1; fi
           done
 
+      - name: Game skeleton example
+        run: |
+          "$GODOT" --headless --path . --scene res://examples/game_skeleton/tests/game_tests.tscn 2>&1 | tee game-tests.log
+          test "${PIPESTATUS[0]}" -eq 0
+          grep -E "^GAME TESTS.*, 0 failures$" game-tests.log
+          if grep -E "SCRIPT ERROR|Parse Error|FAIL:" game-tests.log; then exit 1; fi
+
       - name: Documentation links
         run: python3 tools/check_docs.py

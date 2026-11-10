@@ -28,7 +28,7 @@ App은 구성 지점이다. singleton 하나에 게임 규칙을 모으지 않�
 
 Autoload 순서: GameConfig → Settings → SaveManager → AudioManager → SceneManager → App.
 bootstrap은 `app/init_script`의 게임 hook(`before_app_initialize()`)을 호출해 게임별 schema·migration을 등록한 다음
-`App.initialize()` → 저장 load → 설정의 main_scene으로 이동한다. hook은 `game/`의 RefCounted script이며 프레임워크 파일을 고치지 않고 연결한다.
+`App.initialize()` → 저장 load → (load 실패 시 복구 팝업 대기) → 설정의 main_scene으로 이동한다. hook은 `game/`의 RefCounted script이며 프레임워크 파일을 고치지 않고 연결한다.
 hook 실패는 오류로 기록하고 초기화를 계속한다. 이 경우 미등록 schema의 저장은 기존 load 실패 정책대로 쓰기가 차단된다.
 initialize는 중복 호출해도 서비스를 다시 만들지 않는다.
 기능 off이면 외부 SDK나 Mock을 초기화하지 않고 unavailable 기본 adapter를 연결한다.
@@ -51,8 +51,11 @@ feature flag는 시작 시 확정하며 런타임 재구성 API를 만들지 않
 
 SaveManager는 단일 JSON 슬롯과 version envelope만 소유한다. game이 schema와 migration Callable을 등록한다.
 Settings는 별도 ConfigFile이며 저장 게임 초기화와 독립적이다.
-기본 JsonStore는 임시 파일 기록 후 rename한다. read/parse/schema 실패 후에는 원본을 덮어쓰지 않는다.
-쓰기 금지는 사용자 복구 결정 또는 정상 load로 해제한다. 앱은 실패를 감추지 않고 신호를 UI에 노출한다.
+기본 JsonStore는 임시 파일 기록 후 rename한다. SaveManager는 저장마다 직전 파일을 `.bak`으로 남긴다.
+원본이 없거나 JSON으로 읽히지 않을 때만 `.bak`으로 복구하고 `recovered_from_backup`으로 알린다. 버전·migration 오류는 손상이 아니므로 되돌리지 않는다.
+복구 직후와 reset 직후의 첫 저장은 백업을 갱신하지 않아, 읽지 못한 원본이 정상 백업을 덮어쓰지 않는다. 읽지 못한 원본은 `.unreadable`로 보관한다.
+read/parse/schema 실패 후에는 원본을 덮어쓰지 않는다. 쓰기 금지는 사용자 복구 결정 또는 정상 load로 해제한다.
+bootstrap은 기본 `SaveRecoveryPopup`으로 그 결정을 받는다. `[save] recovery_popup=false`면 게임이 신호와 `write_blocked`로 직접 처리한다.
 JSON은 Resource/object 저장, 암호화, 서버 저장을 대신하지 않는다.
 
 ## 서비스 계약
@@ -91,4 +94,4 @@ SDK 정보 수신과 실제 스토어/계정 검증은 구분한다. 자세한 �
 6. 양 플랫폼 export 및 기기 검증을 수행하고 전체 dependency BOM을 갱신한다.
 
 의미 없는 EventBus, duplicate singleton, genre-specific manager는 추가하지 않는다.
-실제 사용 사례가 생기기 전에는 빈 events/utils/popup 디렉터리에 코드를 채울 필요가 없다.
+실제 사용 사례가 생기기 전에는 빈 events/utils 디렉터리에 코드를 채울 필요가 없다. `ui/popup/`에는 저장 복구 팝업만 둔다.

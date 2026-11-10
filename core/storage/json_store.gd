@@ -2,8 +2,11 @@
 class_name JsonStore
 extends RefCounted
 
+const BACKUP_SUFFIX := ".bak"
+
 ## 같은 디렉터리 내 rename으로 교체한다. 실패 시 기존 파일을 보존한다.
-static func write(path: String, document: Dictionary) -> Error:
+## keep_backup이면 교체 전에 기존 파일을 `.bak`으로 복사한다. 복사 실패는 저장을 막지 않는다.
+static func write(path: String, document: Dictionary, keep_backup: bool = false) -> Error:
 	var temp := path + ".tmp"
 	var file := FileAccess.open(temp, FileAccess.WRITE)
 	if file == null:
@@ -14,6 +17,8 @@ static func write(path: String, document: Dictionary) -> Error:
 	file.close()
 	if error != OK:
 		return error
+	if keep_backup and FileAccess.file_exists(path):
+		DirAccess.copy_absolute(path, path + BACKUP_SUFFIX)
 	return DirAccess.rename_absolute(temp, path)
 
 ## 파싱 오류와 파일 부재를 구분해서 반환한다.

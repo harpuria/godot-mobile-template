@@ -15,6 +15,7 @@ project.godot
        │    ├─ 방향 설정 및 서비스/Adapter 생성 (스토어: GameConfig.store() — custom feature onestore)
        │    ├─ Android native 결제는 시작 시 미완료 구매를 조용히 sync
        │    └─ SaveManager.load_slot() → initialized 신호
+       ├─ 저장 load 실패 시 ui/popup/save_recovery_popup.gd (다시 시도 / 새로 시작) 대기
        └─ SceneManager.change_scene(config의 app/main_scene)
             └─ 기본값: scenes/main.tscn → scenes/demo.gd
 ```
@@ -31,11 +32,14 @@ project.godot
 | 작업 | 먼저 읽을 파일 / 수정 위치 |
 | --- | --- |
 | 템플릿을 새 게임에 적용·업데이트 | `docs/template/APPLYING.md`, `docs/template/CHANGELOG.md` |
+| 새 게임의 첫 구조 만들기 | `examples/game_skeleton/README.md`를 따라 `game/`으로 복사 (타이틀·플레이·결과, 일시정지, 저장, 번역, 게임 검사) |
 | 게임 장면·규칙 추가 | `game/README.md`, `game/`; 첫 장면 연결은 `config/game.cfg`의 `app/main_scene` |
+| 게임 전용 검사 | `game/tests/`(export 제외); 실행기 예시는 `examples/game_skeleton/tests/game_tests.gd` |
 | 초기화 순서·게임 hook·서비스 선택 변경 | `scenes/bootstrap.gd`, `autoload/app.gd`, `autoload/game_config.gd` |
-| 게임 진행 저장·migration | `autoload/save_manager.gd`; 게임별 schema·변환 함수는 `game/`의 init script, `app/init_script`로 연결 |
+| 게임 진행 저장·migration·백업 복구 | `autoload/save_manager.gd`, `ui/popup/save_recovery_popup.gd`; 게임별 schema·변환 함수는 `game/`의 init script, `app/init_script`로 연결 |
 | 저장 파일 입출력 자체 변경 | `core/storage/json_store.gd` |
 | 사용자 설정·설정 화면 | `autoload/settings.gd`, `ui/settings/settings_panel.gd` |
+| 언어·번역 | `autoload/settings.gd`의 `language`(빈 값은 기기 언어); 번역 등록 예시는 `examples/game_skeleton/game_init.gd`, `locale/*.po` |
 | BGM·SFX·UI 사운드 | `autoload/audio_manager.gd`; 게임 음원은 `game/` 아래에 배치 |
 | 장면 이동·로딩 화면 | `autoload/scene_manager.gd`, `ui/loading/loading.tscn` |
 | 광고·결제 등 서비스 동작 | `services/<기능>/`의 Service → 기본 Adapter → Mock 순서로 읽기 |
@@ -54,7 +58,7 @@ project.godot
 | 앱 이름·버전·패키지·방향 | `config/game.cfg`, `tools/configure.gd` |
 | 동작 예제·회귀 검사 | `scenes/demo.gd`, `scenes/transition_demo.gd`, `tests/integration.gd`, `tests/fixtures/` |
 
-`scenes/`와 `assets/demo/`는 프레임워크 검증 예제이며 통합 검사가 사용하므로 새 게임에서도 유지합니다. `docs/template/`은 템플릿 자체의 적용 절차·변경 기록·구현 계획·검증 기록이며 게임 문서가 아닙니다. `addons/play_game_services/`와 `addons/android_services/`는 고정 Android AAR·라이선스·export 연결을 소유합니다. `examples/`는 게임이 복사해 쓰는 레퍼런스, `native/`는 템플릿이 소유한 native 플러그인 소스이며 둘 다 export에서 제외됩니다. `core/events/`, `core/utils/`, `ui/popup/`은 예약 디렉터리입니다.
+`scenes/`와 `assets/demo/`는 프레임워크 검증 예제이며 통합 검사가 사용하므로 새 게임에서도 유지합니다. `docs/template/`은 템플릿 자체의 적용 절차·변경 기록·구현 계획·검증 기록이며 게임 문서가 아닙니다. `addons/play_game_services/`와 `addons/android_services/`는 고정 Android AAR·라이선스·export 연결을 소유합니다. `examples/`는 게임이 복사해 쓰는 레퍼런스, `native/`는 템플릿이 소유한 native 플러그인 소스이며 둘 다 export에서 제외됩니다. `core/events/`, `core/utils/`는 예약 디렉터리입니다.
 
 ## 설정을 바꿀 때
 
@@ -76,8 +80,9 @@ godot --headless --path . --script res://tools/configure.gd
 
 ## 코드를 연결하기 전에 확인할 계약
 
-- **저장:** 게임별 `schema_version`과 migration은 `App.initialize()` 전에 등록해야 합니다. `game/`에 `RefCounted` script를 만들어 `before_app_initialize()`에서 등록하고 `app/init_script`에 경로를 지정합니다. bootstrap(F5)만 hook을 호출하며 실패 시 오류를 기록하고 초기화를 계속합니다. `set_value()`는 자동 저장 대상을 표시하지만 `data`를 직접 수정하면 `mark_dirty()`가 필요합니다. 사용자 설정은 별도 `Settings`로 저장합니다.
-- **초기화 실패:** 현재 App은 저장 load 실패 후에도 초기화 완료를 알립니다. SaveManager는 쓰기를 차단하지만 복구 UI는 제공하지 않습니다. `ready_for_game`을 저장 성공의 증거로 사용하지 마세요.
+- **저장:** 게임별 `schema_version`과 migration은 `App.initialize()` 전에 등록해야 합니다. `game/`에 `RefCounted` script를 만들어 `before_app_initialize()`에서 등록하고 `app/init_script`에 경로를 지정합니다. bootstrap(F5)만 hook을 호출하며 실패 시 오류를 기록하고 초기화를 계속합니다. `set_value()`는 자동 저장 대상을 표시하지만 `data`를 직접 수정하면 `mark_dirty()`가 필요합니다. 사용자 설정은 별도 `Settings`로 저장합니다. 저장할 때마다 직전 파일을 `save.json.bak`으로 남기고, 원본이 없거나 JSON으로 읽히지 않으면 백업으로 복구한 뒤 `recovered_from_backup`을 보냅니다. 버전·migration 오류는 백업으로 되돌리지 않습니다.
+- **초기화 실패:** App은 저장 load 실패 후에도 초기화 완료를 알리고 SaveManager는 쓰기를 차단합니다. bootstrap은 첫 장면 전에 `SaveRecoveryPopup`을 띄워 다시 시도 또는 확인 후 새로 시작을 기다립니다. 읽지 못한 원본은 `save.json.unreadable`로 남습니다. `[save] recovery_popup=false`면 팝업 없이 진행하므로 게임이 `SaveManager.write_blocked`를 처리해야 합니다. bootstrap을 거치지 않는 실행(F6, 검사)에서는 팝업이 없으므로 `ready_for_game`을 저장 성공의 증거로 사용하지 마세요.
+- **언어:** `Settings`의 `language` 기본값은 빈 값이며 기기 locale을 적용합니다. 번역이 없는 언어는 프로젝트 fallback(`en`)으로 표시됩니다. 번역 리소스는 게임이 init script에서 등록합니다.
 - **광고·동의:** 보상은 `rewarded_completed`에서 지급합니다. 광고는 privacy.can_request_ads(), 분석은 privacy.can_use_services()가 필요하며 `privacy_enabled=false`도 허용 상태가 아닙니다.
 - **결제:** 게임은 logical 상품 ID를 전달합니다. Native는 transaction_received를 검증·저장한 뒤 finish_purchase를 호출하고 purchase_token으로 중복 지급을 방지합니다. Android native는 시작·재개 때 미완료 구매를 다시 보내므로 게임은 첫 장면에서 신호를 연결하고 `get_unfinished_transactions()`도 처리합니다. Mock은 transaction_id를 사용합니다. Mock 복원은 같은 실행 세션의 비소모성·구독 거래만 반환합니다.
 - **Mock 선택:** `mode="mock"`인 debug 빌드에서 사용합니다. 모바일은 `allow_mobile_debug_mocks=true`도 필요합니다. release는 Mock을 선택하지 않습니다. Android 결제·광고·UMP는 기능별 native gate와 SDK 포함 옵션이 필요합니다.
@@ -99,10 +104,11 @@ godot --headless --path . --editor --import --quit
 godot --headless --path . --scene res://tests/integration.tscn
 godot --headless --path . --scene res://tests/integration.tscn -- --disabled
 godot --headless --path . --scene res://tests/integration.tscn -- --native
+godot --headless --path . --scene res://examples/game_skeleton/tests/game_tests.tscn
 python3 tools/check_docs.py
 ```
 
-기본 통합 검사는 기본 상품 구성을 사용하는 Desktop debug Mock 시나리오입니다. 상품·설정을 게임에 맞춰 바꿨다면 테스트 입력도 검토하세요. 테스트 저장은 임시 경로에 격리됩니다. 종료 코드, `INTEGRATION` 완료 요약의 실패 0건, script/parse error 부재를 함께 확인합니다. `--native`는 SDK 미설치 실패 경로를 검사하며 실제 스토어 테스트가 아닙니다.
+기본 통합 검사는 기본 상품 구성을 사용하는 Desktop debug Mock 시나리오입니다. 상품·설정을 게임에 맞춰 바꿨다면 테스트 입력도 검토하세요. 테스트 저장은 임시 경로에 격리됩니다. 종료 코드, `INTEGRATION` 완료 요약의 실패 0건, script/parse error 부재를 함께 확인합니다. `--native`는 SDK 미설치 실패 경로를 검사하며 실제 스토어 테스트가 아닙니다. 게임 스켈레톤 검사는 `GAME TESTS` 요약의 실패 0건을 확인합니다. 게임이 복사한 검사는 `res://game/tests/game_tests.tscn`으로 실행합니다.
 
 Android 결제·광고·UMP·ONE store의 가짜 SDK 계약은 `tests/android_services_checks.gd`, 구매 지급 예제는 `tests/purchase_ledger_checks.gd`가 기본 검사에 포함됩니다. 세 SDK 동시 기기 검사는 `android_services_probe` feature와 `scenes/android_services_probe.tscn`을 사용합니다. 빌드·기기 절차는 `docs/ANDROID_SERVICES.md`, 실제 증거는 `docs/template/VALIDATION.md`를 따릅니다.
 

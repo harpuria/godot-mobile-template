@@ -1,5 +1,29 @@
 # Validation
 
+## 게임 스켈레톤·저장 복구·기기 언어 (미출시) — 2026-11-10 Agent 검증
+
+Linux x86_64 cloud container, Godot `4.7.2.stable.official.ed1daf0bf`(공식 Linux 빌드, zip SHA-256 `cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4`)로 headless 검사했다.
+**Desktop 검사이며 Android/iOS export, 실기기 검증은 하지 않았다.** 복구 팝업과 스켈레톤 화면의 실제 표시(safe area·회전·터치), 기기 locale 적용은 기기에서 확인해야 한다.
+
+| 검사 | 실제 결과 |
+| --- | --- |
+| 변경 전 기준 import / 통합 / `--disabled` / `--native` | exit 0; **185 / 13 / 13 checks, 0 failures** |
+| 최종 editor import | exit 0, `ERROR`·`Parse Error`·`WARNING` 없음 |
+| 최종 headless 통합 | **203 checks, 0 failures**, exit 0 |
+| 최종 `--disabled` / `--native` | **13 / 13 checks, 0 failures**, exit 0 |
+| `examples/game_skeleton/tests/game_tests.tscn` | **20 checks, 0 failures**, exit 0 |
+| configure 재실행 | exclude filter에 `game/tests/*` 추가 후 재실행 diff 없음 |
+| 스켈레톤 적용 절차(임시 복사본, README의 복사·경로 치환·config 변경) | import 오류 없음, `res://game/tests/game_tests.tscn` 20 checks 통과, bootstrap 실행 오류 없음, 통합 203 checks 통과, 배포 preset에서 데모 제외 확인 |
+| `.po` 인식 | editor filesystem cache에 `locale/en.po`·`ko.po` 등록(`all_resources` export 대상). 실제 export 포함 여부는 미검증 |
+| 문서 링크 `tools/check_docs.py` | 깨진 링크 0 |
+
+추가된 18개 통합 검사: 손상 원본의 백업 복구와 신호, 읽지 못한 원본 보관, 복구 저장이 정상 백업을 유지, 백업이 직전 저장을 보유,
+미래 버전은 백업으로 되돌리지 않음, 원본·백업 동시 손상 감지, reset이 손상 원본을 백업하지 않음,
+복구 팝업의 재시도 실패 유지·reset 확인 단계·확정 후 새 저장, 정상 load에서는 팝업 없음, bootstrap이 팝업을 기다리고 재시도 성공 후 진행,
+기기 언어 기본 적용·언어 선택·재load 유지·빈 값 복귀.
+
+`v0.1.0`~`v0.4.0` 태그는 로컬에서 만들었지만 이 세션의 권한으로 push가 거부됐다(HTTP 403). 저장소 소유자가 직접 push해야 한다.
+
 ## 스토어 배포 준비 0.4.0 — 2026-11-04 Agent 검증
 
 Linux x86_64 cloud container, Godot `4.7.2.stable.official.ed1daf0bf`(공식 Linux 빌드, zip SHA-256 `cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4`)로 headless 검사했다.

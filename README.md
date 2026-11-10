@@ -46,6 +46,7 @@ Google Play(AAB)와 ONE store(APK) 배포 preset이 있고, ONE store 결제 플
 
 1. 새 게임 폴더를 준비한다. 어떤 파일을 가져오고 어디에 출처를 적는지는 [템플릿 적용 절차](docs/template/APPLYING.md)를 따른다. AI에게 맡길 때도 이 문서를 따르게 한다.
 2. Godot에서 **Scene → New Scene → 2D Scene**을 선택하고 `game/main.tscn`으로 저장한다.
+   타이틀·플레이·결과 화면이 있는 구조에서 시작하려면 [게임 스켈레톤 예제](examples/game_skeleton/README.md)를 `game/`으로 복사한다. AI에게 맡길 때는 이 예제부터 쓰게 한다.
 3. [config/game.cfg](config/game.cfg)를 텍스트 편집기로 연다. 기존 `[app]` 안에서 다음 값만 바꾼다.
 
 ```ini
@@ -107,6 +108,7 @@ Android Play Games v3.4.0 플러그인을 설치했고 Android 16에서 Debug·R
 | 휴대폰에서 `Unavailable` 표시 | 위의 Mock 설정을 확인하고 Debug 빌드로 다시 설치한다 |
 | 소리가 나지 않음 | 휴대폰·컴퓨터 음량과 데모 아래쪽 Volume 설정을 확인한다 |
 | 새 게임 대신 데모 실행 | `main_scene` 경로와 파일 저장 여부를 확인한다 |
+| 시작할 때 저장 복구 화면이 나옴 | 저장 파일과 백업을 모두 읽지 못한 상태다. `Try again` 또는 `Start new game`을 두 번 누른다 |
 | 앱 내보내기 실패 | [Android](docs/DEVELOPMENT.md#android-setup) 또는 [iPhone](docs/DEVELOPMENT.md#ios-setup) 준비 방법을 확인한다 |
 
 ## Dependency BOM
@@ -138,6 +140,7 @@ Billing SDK가 요구하는 Kotlin runtime은 `2.2.10`(Apache-2.0)으로 해결�
 - [스토어 배포 안내](docs/STORE_RELEASE.md): Google Play·App Store·ONE store 요건, 배포 preset, 출시 점검표
 - [ONE store 연동](docs/ONESTORE.md): 플러그인 빌드, 설정, 기기 검증 항목
 - [도구·라이선스 기록](docs/DEPENDENCIES.md): 정확한 버전과 사용 조건
+- [게임 스켈레톤 예제](examples/game_skeleton/README.md): 타이틀·플레이·결과, 일시정지, 저장, 번역, 게임 검사
 - [템플릿 적용 절차](docs/template/APPLYING.md): 새 게임에 가져오기, 출처 기록, 버전 업데이트
 - [변경 기록](docs/template/CHANGELOG.md): 템플릿 버전별 변경 내용
 - [검증 기록](docs/template/VALIDATION.md): 어디까지 확인했는지
