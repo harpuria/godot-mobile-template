@@ -19,11 +19,11 @@
 
 ```bash
 git ls-remote --tags https://github.com/harpuria/godot-mobile-template
-git clone --depth 1 --branch v0.4.0 https://github.com/harpuria/godot-mobile-template /tmp/godot-mobile-template
+git clone --depth 1 --branch v0.5.0 https://github.com/harpuria/godot-mobile-template /tmp/godot-mobile-template
 git -C /tmp/godot-mobile-template rev-parse HEAD
 ```
 
-`v0.4.0` 대신 원하는 태그를 지정한다. 태그가 목록에 없으면(`Remote branch v0.4.0 not found`) `--branch main`으로 받고,
+`v0.5.0` 대신 원하는 태그를 지정한다. 태그가 목록에 없으면(`Remote branch v0.5.0 not found`) `--branch main`으로 받고,
 `autoload/game_config.gd`의 `TEMPLATE_VERSION`과 `rev-parse` 결과를 함께 기록한다. 태그가 없다고 적용을 중단하지 않는다.
 
 ## 2. 프로젝트로 복사하기
@@ -89,7 +89,7 @@ godot --headless --path . --script res://tools/configure.gd
 게임의 `AGENTS.md` 프로젝트 정보에 한 줄로 기록한다.
 
 ```text
-- Template: godot-mobile-template v0.4.0 (https://github.com/harpuria/godot-mobile-template, commit <hash>), applied <YYYY-MM-DD>.
+- Template: godot-mobile-template v0.5.0 (https://github.com/harpuria/godot-mobile-template, commit <hash>), applied <YYYY-MM-DD>.
 ```
 
 템플릿 파일을 의도적으로 바꾸거나 제외했다면 같은 곳에 짧게 남긴다.
@@ -118,7 +118,7 @@ F5로 bootstrap부터 실행해 `main_scene`이 열리고 init script 오류가 
 
 ```bash
 git -C /tmp/godot-mobile-template fetch --tags
-git -C /tmp/godot-mobile-template diff v0.3.0 v0.4.0 -- autoload core services ui scenes tests tools addons examples native project.godot export_presets.cfg docs .github
+git -C /tmp/godot-mobile-template diff v0.4.0 v0.5.0 -- autoload core services ui scenes tests tools addons examples native project.godot export_presets.cfg docs .github
 ```
 
 3. 프레임워크 경로의 변경을 게임에 적용한다. `game/`과 게임이 바꾼 `config/` 값, 게임 문서는 덮어쓰지 않는다.

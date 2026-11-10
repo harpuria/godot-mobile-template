@@ -4,7 +4,7 @@
 `config/game.cfg`의 `app/version`은 게임 앱 버전이며 이 기록과 무관하다.
 파생 게임을 업데이트할 때는 [적용 절차](APPLYING.md#템플릿-버전-업데이트)를 따른다.
 
-## 미출시
+## 0.5.0 — 2026-11-10
 
 ### 추가
 
@@ -20,6 +20,7 @@
 - `Settings`의 `language` 기본값을 `"en"`에서 빈 값(기기 언어)으로 바꿨다. 이전에는 기기 언어와 무관하게 영어 locale을 강제했다.
 - load 실패 상태에서 `reset_slot()`을 호출하면 읽지 못한 원본을 `save.json.unreadable`로 보관한다.
 - 모든 export preset의 exclude filter에 `game/tests/*` 추가.
+- 네이티브 SDK·의존성 버전과 export 기본값은 바꾸지 않았다. 2026-11-04 최신 대조 결과는 [DEPENDENCIES.md](../DEPENDENCIES.md#최신-버전-재확인--2026-11-04)를 따른다.
 
 ### 파생 게임 업데이트 시 주의
 

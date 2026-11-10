@@ -9,7 +9,8 @@
 광고·결제 SDK를 게임에서 직접 호출하지 않고 Service → Adapter로 분리합니다.
 장르별 시스템, DI framework, 범용 EventBus는 포함하지 않습니다.
 
-**현재 상태:** 템플릿 0.4.0은 Android GPGS·Google Play Billing·AdMob·UMP를 고정 버전으로 연결합니다.
+**현재 상태:** 템플릿 0.5.0은 0.4.0의 연동을 그대로 유지하면서 게임 스켈레톤, 저장 백업·복구 팝업, 기기 언어 기본값을 추가했습니다.
+0.4.0은 Android GPGS·Google Play Billing·AdMob·UMP를 고정 버전으로 연결합니다.
 Desktop 통합, Android Debug/Release 기기 JNI 로딩·샘플 광고·Release Mock 차단을 검사했습니다(0.3.0 기기 기록).
 0.4.0은 Google Play AAB·ONE store 배포 preset, 시작 시 미완료 구매 동기화, ONE store 결제 플러그인 소스(기기 미검증)를 추가했습니다.
 실제 Play Console 상품·계정 기능, ONE store 결제와 iOS는 후속 검증입니다. 스토어별 요건은 [STORE_RELEASE.md](STORE_RELEASE.md)를 따릅니다. [Android 연결 계약](ANDROID_SERVICES.md), [실제 검증 기록](template/VALIDATION.md)을 따릅니다.
@@ -28,12 +29,12 @@ Desktop 통합, Android Debug/Release 기기 JNI 로딩·샘플 광고·Release 
 | --- | --- | ---: | --- | --- | --- |
 | Engine | Godot Engine | 4.7.2 | All | 기준 버전 | Locked |
 | Language | GDScript | 4.7.2 내장 | All | 엔진 내장 | Locked |
-| Framework | 자체 Service / Mock / 공통 관리자 | 0.4.0 | All | 실행 결과는 VALIDATION 참고 | In-repo |
+| Framework | 자체 Service / Mock / 공통 관리자 | 0.5.0 | All | 실행 결과는 VALIDATION 참고 | In-repo |
 | Game services | Godot Play Game Services | v3.4.0 | Android | Debug/Release 기기 로딩, 계정 미검증 | Installed, export opt-in |
 | Billing | GodotGooglePlayBilling | 3.3.0 | Android | JNI·조회 응답 확인, 실제 구매 미검증 | Installed, export opt-in |
 | Billing | GodotOneStoreIap (템플릿 소스) + ONE store IAP SDK | 21.04.00 | Android (ONE store) | 컴파일·가짜 SDK 계약만 확인 | Source, 로컬 빌드 |
 | Ads / Privacy | Poing AdMob | 5.1.0 | Android | UMP 갱신·샘플 광고 기기 검사 | Installed, export opt-in |
-| Analytics / Review | 자체 Mock | 0.4.0 | All | 4.7.2 Desktop 실행 검증 | Mock |
+| Analytics / Review | 자체 Mock | 0.5.0 | All | 4.7.2 Desktop 실행 검증 | Mock |
 | iOS native | 바이너리 없음 | N/A | iOS | Unverified | Not installed |
 
 엔진 공식 이름은 **Godot Engine**, License는 **MIT**입니다.
@@ -45,7 +46,7 @@ Desktop 통합, Android Debug/Release 기기 JNI 로딩·샘플 광고·Release 
 
 ## Dependency BOM
 
-현재 정확한 버전·라이선스·SDK 조합은 [README BOM](../README.md#dependency-bom)과 [DEPENDENCIES.md](DEPENDENCIES.md#채택-bom--mobile-template-bom-v040)를 기준으로 합니다.
+현재 정확한 버전·라이선스·SDK 조합은 [README BOM](../README.md#dependency-bom)과 [DEPENDENCIES.md](DEPENDENCIES.md#채택-bom--mobile-template-bom-v050)를 기준으로 합니다.
 기본 Android preset의 세 SDK 포함 옵션과 native gate는 false입니다.
 GPGS는 v3.4.0 / games-v2 22.1.0 / Gson 2.14.0, 결제는 3.3.0 / Billing 9.1.0,
 광고는 Poing 5.1.0 / Next-Gen Ads 1.4.0 / UMP 4.0.0, ONE store는 IAP SDK 21.04.00입니다.

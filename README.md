@@ -4,7 +4,7 @@ Project: godot-mobile-template
 Godot: 4.7.2  
 Language: GDScript  
 Targets: Android / iOS  
-Template Version: 0.4.0
+Template Version: 0.5.0
 
 모바일 게임을 만들 때 쓰는 **시작용 프로젝트**다.
 저장, 소리, 화면 이동 기능이 들어 있다. `game/` 폴더에 게임을 만들면 된다.
@@ -118,7 +118,7 @@ Android Play Games v3.4.0 플러그인을 설치했고 Android 16에서 Debug·R
 | 구성 | 버전 |
 | --- | --- |
 | Godot / 내장 GDScript | 4.7.2 |
-| 이 템플릿 | 0.4.0 ([변경 기록](docs/template/CHANGELOG.md)) |
+| 이 템플릿 | 0.5.0 ([변경 기록](docs/template/CHANGELOG.md)) |
 | Android 결제 플러그인 | [GodotGooglePlayBilling 3.3.0](https://github.com/godot-sdk-integrations/godot-google-play-billing/releases/tag/3.3.0), MIT; Google Billing `9.1.0`; Gradle export opt-in, 스토어 구매 미검증 |
 | Android 광고 플러그인 | [Poing AdMob 5.1.0](https://github.com/poingstudios/godot-admob-plugin/releases/tag/v5.1.0), MIT; Google Next-Gen Ads `1.4.0`, UMP `4.0.0`, ConstraintLayout `2.2.0` (Apache-2.0); Gradle export opt-in |
 | 게임 서비스 Service / Mock / Adapter | 템플릿 내 GDScript 구현, 실제 계정 기능 미검증 |

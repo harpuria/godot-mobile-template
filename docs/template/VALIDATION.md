@@ -1,6 +1,6 @@
 # Validation
 
-## 게임 스켈레톤·저장 복구·기기 언어 (미출시) — 2026-11-10 Agent 검증
+## 게임 스켈레톤·저장 복구·기기 언어 0.5.0 — 2026-11-10 Agent 검증
 
 Linux x86_64 cloud container, Godot `4.7.2.stable.official.ed1daf0bf`(공식 Linux 빌드, zip SHA-256 `cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4`)로 headless 검사했다.
 **Desktop 검사이며 Android/iOS export, 실기기 검증은 하지 않았다.** 복구 팝업과 스켈레톤 화면의 실제 표시(safe area·회전·터치), 기기 locale 적용은 기기에서 확인해야 한다.

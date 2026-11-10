@@ -1,6 +1,6 @@
 # Android 결제·광고·동의 연동
 
-기준: Godot **4.7.2**, 템플릿 **0.4.0**. iOS 결제·광고 바이너리는 포함하지 않는다. ONE store 결제는 [ONESTORE.md](ONESTORE.md), 스토어 제출은 [STORE_RELEASE.md](STORE_RELEASE.md)를 따른다.
+기준: Godot **4.7.2**, 템플릿 **0.5.0**. iOS 결제·광고 바이너리는 포함하지 않는다. ONE store 결제는 [ONESTORE.md](ONESTORE.md), 스토어 제출은 [STORE_RELEASE.md](STORE_RELEASE.md)를 따른다.
 게임은 `App.billing`, `App.ads`, `App.privacy`만 사용한다.
 SDK 설치, export 성공, 기기 로딩, 스토어 계정 기능 검증은 서로 다른 상태이며 실제 결과는 [검증 기록](template/VALIDATION.md)을 따른다.
 

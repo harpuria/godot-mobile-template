@@ -1,4 +1,4 @@
-# Architecture — Mobile Template 0.4.0
+# Architecture — Mobile Template 0.5.0
 
 ## Layer 책임
 
