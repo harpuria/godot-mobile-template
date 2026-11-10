@@ -93,7 +93,7 @@ func _refresh() -> void:
 
 func _button(text_key: String, action: Callable) -> Button:
 	var button := Button.new()
-	button.text = text_key
+	button.text = tr(text_key)
 	button.custom_minimum_size = Vector2(160, 96)
 	button.pressed.connect(action)
 	return button

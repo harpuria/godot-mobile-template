@@ -13,7 +13,7 @@ func _ready() -> void:
 	box.add_theme_constant_override("separation", 32)
 	safe.add_child(box)
 	var title := Label.new()
-	title.text = "GAME_TITLE"
+	title.text = tr("GAME_TITLE")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 56)
 	box.add_child(title)
@@ -21,7 +21,7 @@ func _ready() -> void:
 	best.text = tr("BEST_SCORE") % Session.best_score()
 	best.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(best)
-	start_button.text = "START"
+	start_button.text = tr("START")
 	start_button.custom_minimum_size.y = 96
 	start_button.pressed.connect(start)
 	box.add_child(start_button)

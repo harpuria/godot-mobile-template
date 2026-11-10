@@ -74,7 +74,7 @@ func _check_translations() -> void:
 func _check_flow() -> void:
 	await _goto("title.tscn")
 	var title := get_tree().current_scene
-	check(title.start_button.text == "START", "Title scene shown")
+	check(title.start_button.text == tr("START") and tr("START") != "START", "Title scene shows translated text")
 	title.start()
 	await SceneManager.transition_completed
 	var play := get_tree().current_scene
