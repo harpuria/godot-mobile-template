@@ -4,7 +4,32 @@
 `config/game.cfg`의 `app/version`은 게임 앱 버전이며 이 기록과 무관하다.
 파생 게임을 업데이트할 때는 [적용 절차](APPLYING.md#템플릿-버전-업데이트)를 따른다.
 
-## 미출시
+## 0.5.0 — 2026-11-10
+
+### 추가
+
+- `examples/game_skeleton/`: 타이틀 → 플레이 → 결과 흐름, 일시정지·Android back·백그라운드 처리, 저장 연결, `.po` 번역(en·ko),
+  게임 전용 headless 검사 실행기(`tests/game_tests.tscn`). CI가 이 검사를 실행한다.
+- 저장 백업: `SaveManager`가 저장마다 직전 파일을 `save.json.bak`으로 남기고, 원본이 없거나 JSON으로 읽히지 않으면 백업으로 복구한다.
+  `recovered_from_backup(error)` 신호, `JsonStore.write(path, document, keep_backup)`.
+- `ui/popup/save_recovery_popup.gd`(`SaveRecoveryPopup`): 저장 load 실패 시 bootstrap이 첫 장면 전에 표시한다. `[save] recovery_popup`으로 끌 수 있다.
+- `SettingsPanel.languages`와 언어 목록의 `System` 항목.
+
+### 변경
+
+- `Settings`의 `language` 기본값을 `"en"`에서 빈 값(기기 언어)으로 바꿨다. 이전에는 기기 언어와 무관하게 영어 locale을 강제했다.
+- load 실패 상태에서 `reset_slot()`을 호출하면 읽지 못한 원본을 `save.json.unreadable`로 보관한다.
+- 모든 export preset의 exclude filter에 `game/tests/*` 추가.
+- 네이티브 SDK·의존성 버전과 export 기본값은 바꾸지 않았다. 2026-11-04 최신 대조 결과는 [DEPENDENCIES.md](../DEPENDENCIES.md#최신-버전-재확인--2026-11-04)를 따른다.
+
+### 파생 게임 업데이트 시 주의
+
+- `config/game.cfg`의 `[save]`에 `recovery_popup=true`를 추가한다. 자체 복구 UI가 있으면 `false`로 둔다.
+- 이미 실행한 기기의 `settings.cfg`에는 `language="en"`이 저장돼 있어 그대로 영어를 쓴다. 기기 언어를 따르게 하려면 게임이 한 번 빈 값으로 되돌린다.
+- 원본 저장이 손상되면 이전에는 `load_failed`였던 경우가 백업 복구(`OK`)로 바뀐다. 손상 알림이 필요하면 `recovered_from_backup`을 구독한다.
+- configure를 다시 실행해 `export_presets.cfg`의 exclude filter를 갱신한다.
+
+### 수정
 
 - 테스트: `Finished effects cleaned up`이 0.25초 효과음을 0.4초 고정 대기 뒤 확인해, 오디오 처리가 조금만 늦어도 실패했다(macOS 환경 점검에서 3회 중 2회). 효과음 정리를 최대 3초까지 기다리도록 바꿨다. 정리가 끝나면 바로 다음 검사로 넘어간다.
 

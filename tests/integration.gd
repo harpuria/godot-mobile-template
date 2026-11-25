@@ -73,9 +73,32 @@ func _run() -> void:
 	var file := FileAccess.open(SaveManager.storage_path, FileAccess.WRITE)
 	file.store_string("{broken")
 	file.close()
+	var recovered: Array = []
+	var on_recovered := func(error: int): recovered.append(error)
+	SaveManager.recovered_from_backup.connect(on_recovered)
+	check(SaveManager.load_slot() == OK and SaveManager.data.get("migrated") == true and recovered == [ERR_PARSE_ERROR], "Corrupt save recovered from backup")
+	var backup_path := SaveManager.storage_path + JsonStore.BACKUP_SUFFIX
+	var unreadable_path := SaveManager.storage_path + SaveManager.UNREADABLE_SUFFIX
+	check(FileAccess.get_file_as_string(unreadable_path) == "{broken", "Unreadable save kept aside")
+	check(SaveManager.dirty and SaveManager.flush() == OK and JsonStore.read(backup_path).error == OK, "Recovery save keeps the good backup")
+	SaveManager.set_value("after_recovery", true)
+	check(SaveManager.save_slot() == OK and not JsonStore.read(backup_path).document.data.has("after_recovery"), "Backup holds the previous save")
+	JsonStore.write(SaveManager.storage_path, {"version": 99, "data": {}})
+	check(SaveManager.load_slot() == ERR_INVALID_DATA and recovered.size() == 1, "Future version does not roll back to backup")
+	for path in [SaveManager.storage_path, backup_path]:
+		file = FileAccess.open(path, FileAccess.WRITE)
+		file.store_string("{broken")
+		file.close()
+	check(SaveManager.load_slot() == ERR_PARSE_ERROR and SaveManager.write_blocked, "Corrupt save and backup detected")
+	SaveManager.recovered_from_backup.disconnect(on_recovered)
+	await _check_save_recovery_popup()
+	file = FileAccess.open(SaveManager.storage_path, FileAccess.WRITE)
+	file.store_string("{broken")
+	file.close()
 	check(SaveManager.load_slot() == ERR_PARSE_ERROR, "Corrupt save detected")
 	SaveManager.reset_slot({"fresh": true})
 	check(SaveManager.save_slot() == OK, "Explicit reset restores writing")
+	check(not FileAccess.file_exists(backup_path), "Reset does not back up the unreadable save")
 	JsonStore.write(SaveManager.storage_path, {"version": 1.5, "data": {}})
 	check(SaveManager.load_slot() == ERR_INVALID_DATA, "Fractional schema rejected")
 	SaveManager.reset_slot({"fresh": true})
@@ -88,6 +111,14 @@ func _run() -> void:
 	Settings.values.bgm_volume = 0.9
 	check(Settings.load_settings() == OK and Settings.get_setting("bgm_volume") == 0.25, "Settings round trip")
 	check(Settings.set_setting("custom_option", 7) == OK, "Game settings extension")
+	var device_locale := TranslationServer.standardize_locale(OS.get_locale())
+	check(Settings.get_setting("language") == "" and TranslationServer.get_locale() == device_locale, "Language follows the device by default")
+	Settings.set_setting("language", "ko")
+	check(TranslationServer.get_locale() == "ko", "Chosen language applied")
+	Settings.load_settings()
+	check(TranslationServer.get_locale() == "ko", "Chosen language survives reload")
+	Settings.set_setting("language", "")
+	check(TranslationServer.get_locale() == device_locale, "Empty language returns to the device locale")
 	Settings.set_setting("sfx_volume", 0.0)
 	check(AudioServer.is_bus_mute(AudioServer.get_bus_index("SFX")), "Zero volume mutes SFX")
 	var tone := preload("res://assets/demo/tone.wav")
@@ -257,3 +288,38 @@ func _check_unavailable_initialization() -> void:
 	DirAccess.remove_absolute(test_dir)
 	print("INTEGRATION %s: %s checks, %s failures" % ["disabled" if disabled else "native", checks, failures])
 	get_tree().quit(0 if failures == 0 else 1)
+
+## 저장 복구 팝업의 재시도·확인 후 초기화 흐름과 bootstrap 연결을 검증한다. load 실패 상태에서 호출한다.
+func _check_save_recovery_popup() -> void:
+	var bootstrap := preload("res://scenes/bootstrap.gd")
+	var actions: Array = []
+	var popup := SaveRecoveryPopup.new()
+	popup.resolved.connect(func(action: String): actions.append(action))
+	add_child(popup)
+	popup.retry()
+	check(actions.is_empty() and SaveManager.write_blocked and popup.message.text == SaveRecoveryPopup.TEXTS.SAVE_RECOVERY_RETRY_FAILED, "Recovery popup stays open when retry fails")
+	popup.request_reset()
+	check(actions.is_empty() and SaveManager.write_blocked and popup.reset_button.text == SaveRecoveryPopup.TEXTS.SAVE_RECOVERY_CONFIRM, "Recovery reset needs confirmation")
+	popup.request_reset()
+	check(actions == ["reset"] and not SaveManager.write_blocked and SaveManager.data.is_empty(), "Confirmed reset starts a new save")
+	check(JsonStore.read(SaveManager.storage_path).error == OK, "Reset save written")
+	await get_tree().process_frame
+	var before := get_child_count()
+	await bootstrap.resolve_save_failure(self)
+	check(get_child_count() == before, "No recovery popup after a normal load")
+	var file := FileAccess.open(SaveManager.storage_path, FileAccess.WRITE)
+	file.store_string("{broken")
+	file.close()
+	DirAccess.remove_absolute(SaveManager.storage_path + JsonStore.BACKUP_SUFFIX)
+	SaveManager.load_slot()
+	var state := {"done": false}
+	var wait := func():
+		await bootstrap.resolve_save_failure(self)
+		state.done = true
+	wait.call()
+	var shown := get_child(get_child_count() - 1) as SaveRecoveryPopup
+	check(shown != null and not state.done, "Bootstrap waits on the recovery popup")
+	JsonStore.write(SaveManager.storage_path, {"version": SaveManager.schema_version, "data": {"restored": true}})
+	shown.retry()
+	await get_tree().process_frame
+	check(state.done and SaveManager.data.get("restored") == true, "Retry resumes startup after the save is readable")

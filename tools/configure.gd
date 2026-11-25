@@ -3,7 +3,7 @@
 extends SceneTree
 
 const DEMO_SCENE := "res://scenes/main.tscn"
-const BASE_EXCLUDE := "tests/*,tools/*,docs/*,examples/*,native/*,*.md,config/*.local.*"
+const BASE_EXCLUDE := "tests/*,game/tests/*,tools/*,docs/*,examples/*,native/*,*.md,config/*.local.*"
 ## 게임 main_scene이 데모가 아니면 배포 preset에서 데모·진단 장면과 음원을 제외한다.
 const RELEASE_EXCLUDE := "scenes/main.tscn,scenes/demo.gd,scenes/transition_demo.*,scenes/android_services_probe.*,scenes/android_game_services_probe.*,assets/demo/*"
 const INCLUDE := "config/game.cfg,config/products.json"

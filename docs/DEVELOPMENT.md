@@ -9,7 +9,8 @@
 광고·결제 SDK를 게임에서 직접 호출하지 않고 Service → Adapter로 분리합니다.
 장르별 시스템, DI framework, 범용 EventBus는 포함하지 않습니다.
 
-**현재 상태:** 템플릿 0.4.0은 Android GPGS·Google Play Billing·AdMob·UMP를 고정 버전으로 연결합니다.
+**현재 상태:** 템플릿 0.5.0은 0.4.0의 연동을 그대로 유지하면서 게임 스켈레톤, 저장 백업·복구 팝업, 기기 언어 기본값을 추가했습니다.
+0.4.0은 Android GPGS·Google Play Billing·AdMob·UMP를 고정 버전으로 연결합니다.
 Desktop 통합, Android Debug/Release 기기 JNI 로딩·샘플 광고·Release Mock 차단을 검사했습니다(0.3.0 기기 기록).
 0.4.0은 Google Play AAB·ONE store 배포 preset, 시작 시 미완료 구매 동기화, ONE store 결제 플러그인 소스(기기 미검증)를 추가했습니다.
 실제 Play Console 상품·계정 기능, ONE store 결제와 iOS는 후속 검증입니다. 스토어별 요건은 [STORE_RELEASE.md](STORE_RELEASE.md)를 따릅니다. [Android 연결 계약](ANDROID_SERVICES.md), [실제 검증 기록](template/VALIDATION.md)을 따릅니다.
@@ -28,12 +29,12 @@ Desktop 통합, Android Debug/Release 기기 JNI 로딩·샘플 광고·Release 
 | --- | --- | ---: | --- | --- | --- |
 | Engine | Godot Engine | 4.7.2 | All | 기준 버전 | Locked |
 | Language | GDScript | 4.7.2 내장 | All | 엔진 내장 | Locked |
-| Framework | 자체 Service / Mock / 공통 관리자 | 0.4.0 | All | 실행 결과는 VALIDATION 참고 | In-repo |
+| Framework | 자체 Service / Mock / 공통 관리자 | 0.5.0 | All | 실행 결과는 VALIDATION 참고 | In-repo |
 | Game services | Godot Play Game Services | v3.4.0 | Android | Debug/Release 기기 로딩, 계정 미검증 | Installed, export opt-in |
 | Billing | GodotGooglePlayBilling | 3.3.0 | Android | JNI·조회 응답 확인, 실제 구매 미검증 | Installed, export opt-in |
 | Billing | GodotOneStoreIap (템플릿 소스) + ONE store IAP SDK | 21.04.00 | Android (ONE store) | 컴파일·가짜 SDK 계약만 확인 | Source, 로컬 빌드 |
 | Ads / Privacy | Poing AdMob | 5.1.0 | Android | UMP 갱신·샘플 광고 기기 검사 | Installed, export opt-in |
-| Analytics / Review | 자체 Mock | 0.4.0 | All | 4.7.2 Desktop 실행 검증 | Mock |
+| Analytics / Review | 자체 Mock | 0.5.0 | All | 4.7.2 Desktop 실행 검증 | Mock |
 | iOS native | 바이너리 없음 | N/A | iOS | Unverified | Not installed |
 
 엔진 공식 이름은 **Godot Engine**, License는 **MIT**입니다.
@@ -45,7 +46,7 @@ Desktop 통합, Android Debug/Release 기기 JNI 로딩·샘플 광고·Release 
 
 ## Dependency BOM
 
-현재 정확한 버전·라이선스·SDK 조합은 [README BOM](../README.md#dependency-bom)과 [DEPENDENCIES.md](DEPENDENCIES.md#채택-bom--mobile-template-bom-v040)를 기준으로 합니다.
+현재 정확한 버전·라이선스·SDK 조합은 [README BOM](../README.md#dependency-bom)과 [DEPENDENCIES.md](DEPENDENCIES.md#채택-bom--mobile-template-bom-v050)를 기준으로 합니다.
 기본 Android preset의 세 SDK 포함 옵션과 native gate는 false입니다.
 GPGS는 v3.4.0 / games-v2 22.1.0 / Gson 2.14.0, 결제는 3.3.0 / Billing 9.1.0,
 광고는 Poing 5.1.0 / Next-Gen Ads 1.4.0 / UMP 4.0.0, ONE store는 IAP SDK 21.04.00입니다.
@@ -91,10 +92,10 @@ ui/
   common/               SafeArea
   loading/              전환 overlay
   settings/             재사용 SettingsPanel
-  popup/                예약 디렉터리
+  popup/                저장 복구 팝업(SaveRecoveryPopup)
 scenes/                 bootstrap(게임 초기화 hook), main 검증 화면, 전환 검증 화면, Android 진단
 game/                   게임별 코드 및 저장 구조 (현재 README만 존재)
-examples/               game/으로 복사해 쓰는 레퍼런스(구매 처리). export 제외
+examples/               game/으로 복사해 쓰는 레퍼런스(게임 스켈레톤, 구매 처리). export 제외
 native/                 템플릿이 소유한 native 플러그인 소스(ONE store). export 제외
 config/                 game.cfg, products.json
 assets/demo/            자체 생성 테스트 음원
@@ -118,6 +119,7 @@ godot --headless --path . --editor --import --quit
 godot --headless --path . --scene res://tests/integration.tscn
 godot --headless --path . --scene res://tests/integration.tscn -- --disabled
 godot --headless --path . --scene res://tests/integration.tscn -- --native
+godot --headless --path . --scene res://examples/game_skeleton/tests/game_tests.tscn
 python3 tools/check_docs.py
 ```
 
@@ -128,7 +130,7 @@ python3 tools/check_docs.py
 ## Creating a New Game
 
 1. 프로젝트를 복제하고 `config/game.cfg`의 이름, 버전, build_number, package/bundle, orientation을 바꿉니다.
-2. `game/main.tscn` 등 게임 첫 장면을 만들고 `app/main_scene`을 지정합니다.
+2. [examples/game_skeleton](../examples/game_skeleton/README.md)을 `game/`으로 복사해 타이틀·플레이·결과 구조에서 시작하거나, `game/main.tscn` 등 첫 장면을 직접 만들고 `app/main_scene`을 지정합니다.
 3. `config/products.json`에서 logical ID / 상품 타입 / Android·iOS ID를 편집합니다.
 4. 사용하지 않는 feature flag를 `false`로 지정합니다.
 5. 아래 설정 동기화 도구를 실행합니다.
@@ -162,7 +164,7 @@ func _on_purchase(product_id: String, transaction: Dictionary) -> void:
 | `app` | name, version(게임 앱 버전), build_number(스토어 제출 번호), android_package, ios_bundle, orientation, main_scene, init_script |
 | `features` | ads_enabled, iap_enabled, analytics_enabled, review_enabled, privacy_enabled, game_services_enabled |
 | `services` | mode=`mock` 또는 `native`, allow_mobile_debug_mocks |
-| `save` | autosave_seconds, 기본 30초 |
+| `save` | autosave_seconds(기본 30초), recovery_popup(기본 true) |
 | `ads` | android_mode, android_native_verified, use_test_ads, test_device_ids, retry_seconds, Android/iOS App ID, rewarded/interstitial/banner unit ID |
 | `billing` | android_mode, android_native_verified, timeout_seconds, android_product_ids, onestore_product_ids, onestore_public_key |
 | `privacy` | tag_for_under_age_of_consent |
@@ -323,8 +325,10 @@ Settings.set_setting("haptics_enabled", true)
 - JSON 숫자는 load 후 float가 될 수 있습니다. 정수 게임 값은 `int(...)`로 읽습니다.
 - `set_value()`는 dirty를 표시하며 30초 타이머, 앱 pause 및 종료 시 변경분을 저장합니다.
 - `data`를 직접 수정하면 `mark_dirty()`가 필요합니다. 단순 문자열 키 단위 API를 우선합니다.
-- 쓰기는 `.tmp` 후 rename. 암호화, cloud save, 완전한 정전 내구성, 다중 프로세스 동시 쓰기는 제공하지 않습니다.
-- load 실패 시 기존 메모리/파일을 보존하고 쓰기를 차단합니다. 사용자 복구/새 게임 결정 후 `reset_slot()`을 호출합니다.
+- 쓰기는 `.tmp` 후 rename하며 직전 파일을 `save.json.bak`으로 남깁니다. 암호화, cloud save, 완전한 정전 내구성, 다중 프로세스 동시 쓰기는 제공하지 않습니다.
+- 원본이 없거나 JSON으로 읽히지 않으면 `.bak`으로 복구하고 `recovered_from_backup(error)`을 보냅니다. 직전 저장 이후의 진행은 잃을 수 있습니다. 버전·migration 오류는 백업으로 되돌리지 않습니다.
+- 복구도 실패하면 기존 메모리/파일을 보존하고 쓰기를 차단합니다. bootstrap이 `SaveRecoveryPopup`(다시 시도 / 두 번 눌러 새로 시작)을 띄우고 첫 장면 진입을 기다립니다. 새로 시작하면 읽지 못한 원본을 `save.json.unreadable`로 남깁니다.
+- 팝업 문구는 영어 기본값이며 번역에 `SAVE_RECOVERY_*` 키를 추가하면 바뀝니다. `[save] recovery_popup=false`면 게임이 직접 `reset_slot()` 흐름을 만듭니다.
 - 저장 실패는 반환값과 `save_failed`/`load_failed` 신호로 전달됩니다. 종료 저장 실패 시 자동 종료를 보류합니다.
 
 게임별 schema와 migration은 `config/game.cfg`의 `app/init_script`로 지정한 script에서 등록합니다.
@@ -347,7 +351,9 @@ F6으로 게임 장면을 직접 실행하면 bootstrap을 거치지 않으므�
 
 Settings는 **별도 `user://settings.cfg` ConfigFile**이며 변경 즉시 저장합니다.
 BGM/SFX/UI 볼륨, haptics_enabled, language와 임의 게임 옵션을 지원합니다.
-언어 선택은 TranslationServer locale을 바꿉니다. 실제 번역 리소스는 게임이 추가합니다.
+`language`의 기본값은 빈 값이며 기기 언어를 따릅니다. 값을 지정하면 그 locale을 쓰고, 빈 값으로 되돌리면 다시 기기 언어를 따릅니다.
+번역이 없는 언어는 프로젝트 fallback(`en`)으로 표시됩니다. 번역 리소스는 게임이 추가합니다. `.po` 등록 예시는 [game_skeleton](../examples/game_skeleton/README.md)의 `game_init.gd`입니다.
+`SettingsPanel`의 언어 목록은 `SettingsPanel.languages`(코드 → 표시 이름)로 바꿉니다.
 AudioManager는 BGM 한 개, SFX/UI 최대 16개를 재생합니다. 반복은 AudioStream 리소스에서 지정합니다.
 
 ## Export
@@ -396,7 +402,8 @@ release 절차: 버전·변경 기록 갱신 → 통합 검사 → 기본 브랜
 - UMP 광고 자격과 분석 동의를 분리합니다. 실제 앱의 required 동의 UI·거부·개인정보 선택 변경은 추가 기기 검증이 필요합니다. iOS ATT는 미설치입니다.
 - 배너·미디에이션, 서버 결제 검증과 구독 갱신·만료 정책은 후속 작업입니다. 로컬 지급 기록은 예제로만 제공합니다.
 - ONE store 결제는 플러그인 소스·컴파일·가짜 SDK 검사까지입니다. iOS 결제·광고·Game Center native는 미설치입니다.
-- Settings 언어 선택만 제공하며 데모 전체 번역은 포함하지 않습니다.
+- 언어 선택과 기기 언어 적용만 제공합니다. 데모 화면 번역은 없고, 번역 예시는 game_skeleton의 `en`·`ko`뿐입니다.
+- 저장 백업은 직전 저장 한 세대뿐입니다. 복구 팝업의 실제 기기 표시(safe area, 회전)는 미검증입니다.
 - 프레임워크는 게임별 데이터·보상·entitlement를 정의하지 않습니다.
 
 ## Troubleshooting

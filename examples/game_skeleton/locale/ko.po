@@ -1,0 +1,58 @@
+msgid ""
+msgstr ""
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8-bit\n"
+
+msgid "GAME_TITLE"
+msgstr "탭 스프린트"
+
+msgid "START"
+msgstr "시작"
+
+msgid "BEST_SCORE"
+msgstr "최고 점수: %d"
+
+msgid "SCORE"
+msgstr "점수: %d"
+
+msgid "TIME_LEFT"
+msgstr "남은 시간: %d"
+
+msgid "TAP"
+msgstr "탭!"
+
+msgid "PAUSE"
+msgstr "일시정지"
+
+msgid "RESUME"
+msgstr "계속하기"
+
+msgid "QUIT_TO_TITLE"
+msgstr "타이틀로"
+
+msgid "RETRY"
+msgstr "다시 하기"
+
+msgid "NEW_BEST"
+msgstr "최고 기록!"
+
+msgid "SAVE_RECOVERY_MESSAGE"
+msgstr "저장 데이터를 불러오지 못했습니다."
+
+msgid "SAVE_RECOVERY_RETRY"
+msgstr "다시 시도"
+
+msgid "SAVE_RECOVERY_RESET"
+msgstr "새로 시작"
+
+msgid "SAVE_RECOVERY_CONFIRM"
+msgstr "한 번 더 누르면 진행 기록이 지워집니다"
+
+msgid "SAVE_RECOVERY_RETRY_FAILED"
+msgstr "여전히 저장 데이터를 불러올 수 없습니다."
+
+msgid "SAVE_RECOVERY_RESET_FAILED"
+msgstr "새 저장 데이터를 기록하지 못했습니다."
+

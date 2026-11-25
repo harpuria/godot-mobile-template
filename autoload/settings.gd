@@ -4,7 +4,8 @@ extends Node
 signal changed(key: String, value: Variant)
 signal save_failed(error: int)
 var storage_path := "user://settings.cfg"
-var values := {"bgm_volume": 0.8, "sfx_volume": 0.8, "ui_volume": 0.8, "haptics_enabled": true, "language": "en"}
+## language가 빈 값이면 기기 언어를 따른다. 번역이 없는 언어는 프로젝트 fallback locale로 표시된다.
+var values := {"bgm_volume": 0.8, "sfx_volume": 0.8, "ui_volume": 0.8, "haptics_enabled": true, "language": ""}
 
 func _ready() -> void:
 	load_settings()
@@ -26,8 +27,13 @@ func load_settings() -> Error:
 				continue
 			values[key] = value
 			changed.emit(key, value)
-	TranslationServer.set_locale(str(values.language))
+	_apply_language()
 	return error
+
+## 사용자가 고른 언어가 없으면 기기 locale을 적용한다.
+func _apply_language() -> void:
+	var language := str(values.get("language", ""))
+	TranslationServer.set_locale(OS.get_locale() if language.is_empty() else language)
 
 ## 설정 값을 조회하며 없으면 기본값을 반환한다.
 func get_setting(key: String, fallback: Variant = null) -> Variant:
@@ -39,7 +45,7 @@ func set_setting(key: String, value: Variant) -> Error:
 		value = clampf(float(value), 0.0, 1.0)
 	values[key] = value
 	if key == "language":
-		TranslationServer.set_locale(str(value))
+		_apply_language()
 	changed.emit(key, value)
 	return save_settings()
 

@@ -2,7 +2,7 @@
 extends Node
 
 const ENGINE_VERSION = "4.7.2"
-const TEMPLATE_VERSION = "0.4.0"
+const TEMPLATE_VERSION = "0.5.0"
 var config := ConfigFile.new()
 var products: Dictionary = {}
 ## 테스트 전용 스토어 지정. 비어 있으면 플랫폼과 export feature로 판단한다.

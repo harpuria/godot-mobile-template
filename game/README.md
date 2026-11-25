@@ -3,10 +3,13 @@
 게임별 scene/script/resource 및 저장 데이터 정의를 이 디렉터리에 둡니다.
 `config/game.cfg`의 `app/main_scene`을 게임의 첫 scene 경로로 변경합니다.
 
+처음 시작할 때는 [게임 스켈레톤 예제](../examples/game_skeleton/README.md)를 이 디렉터리로 복사합니다.
+타이틀·플레이·결과 장면, 일시정지·Android back, 저장, 번역, 게임 검사(`game/tests/`, export 제외)가 들어 있습니다.
+
 - 광고: `App.ads.show_rewarded("revive")`, 보상은 `rewarded_completed`에서 지급.
 - 구매: `App.billing.purchase("REMOVE_ADS")`, 성공/취소/실패 신호 처리.
 - 저장: `SaveManager.set_value("progress", {...})`, `flush()`.
-- 설정: `Settings.set_setting("my_option", value)`.
+- 설정: `Settings.set_setting("my_option", value)`. `language`가 빈 값이면 기기 언어를 따릅니다.
 - 사운드: `AudioManager.play_sfx(stream)`.
 - 장면: `SceneManager.change_scene("res://game/main.tscn")`.
 

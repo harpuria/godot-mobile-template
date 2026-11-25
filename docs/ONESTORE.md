@@ -1,6 +1,6 @@
 # ONE store 결제 연동
 
-기준: Godot **4.7.2**, 템플릿 **0.4.0**, ONE store IAP SDK **21.04.00** (API v7).
+기준: Godot **4.7.2**, 템플릿 **0.5.0**, ONE store IAP SDK **21.04.00** (API v7).
 상태: **Unverified.** 플러그인 소스는 실제 SDK·Godot 4.7.2 클래스로 컴파일 검사만 했다. ONE store 기기 결제·로그인·업데이트 흐름은 검증하지 않았다.
 기기 검증 전에는 `android_native_verified`를 운영 빌드에서 열지 않는다.
 

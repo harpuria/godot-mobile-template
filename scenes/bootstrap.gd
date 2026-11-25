@@ -15,6 +15,7 @@ func _ready() -> void:
 	if init_error != OK:
 		push_error("Game init script failed (%s): %s" % [error_string(init_error), init_script])
 	App.initialize()
+	await resolve_save_failure(self)
 	SceneManager.change_scene(str(GameConfig.value("app", "main_scene", "res://scenes/main.tscn")))
 
 ## 게임 초기화 script의 before_app_initialize()를 App.initialize() 전에 한 번 호출한다.
@@ -35,3 +36,12 @@ static func run_init_script(path: String) -> Error:
 		return ERR_METHOD_NOT_FOUND
 	hook.call(INIT_METHOD)
 	return OK
+
+## 저장 load가 실패했으면 기본 복구 팝업을 띄우고 사용자의 선택을 기다린다.
+## 정상 load이거나 `[save] recovery_popup=false`면 바로 돌아온다.
+static func resolve_save_failure(host: Node) -> void:
+	if not SaveManager.write_blocked or not bool(GameConfig.value("save", "recovery_popup", true)):
+		return
+	var popup := SaveRecoveryPopup.new()
+	host.add_child(popup)
+	await popup.resolved

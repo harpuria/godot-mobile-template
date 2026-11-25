@@ -2,6 +2,9 @@
 class_name SettingsPanel
 extends VBoxContainer
 
+## 선택 목록에 표시할 언어 코드와 이름. 게임이 번역을 추가하면 패널 생성 전에 고친다.
+static var languages := {"en": "English", "ko": "한국어"}
+
 func _ready() -> void:
 	for bus in ["bgm", "sfx", "ui"]:
 		var label := Label.new()
@@ -23,8 +26,12 @@ func _ready() -> void:
 	add_child(haptics)
 	var language := OptionButton.new()
 	language.custom_minimum_size.y = 52
-	language.add_item("English")
-	language.add_item("한국어")
-	language.selected = 1 if Settings.get_setting("language") == "ko" else 0
-	language.item_selected.connect(func(index: int): Settings.set_setting("language", "ko" if index == 1 else "en"))
+	# 첫 항목(빈 값)은 기기 언어를 따른다.
+	var codes := [""]
+	language.add_item("System")
+	for code in languages:
+		codes.append(code)
+		language.add_item(languages[code])
+	language.selected = maxi(0, codes.find(str(Settings.get_setting("language", ""))))
+	language.item_selected.connect(func(index: int): Settings.set_setting("language", codes[index]))
 	add_child(language)

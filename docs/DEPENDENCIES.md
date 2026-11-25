@@ -1,6 +1,6 @@
 # Dependency 조사 및 Compatibility BOM
 
-최종 Android 통합 확인일: **2026-10-21**. 최신 버전 재확인일: **2026-11-04**. 기준 엔진: **Godot 4.7.2**, Template: **0.4.0**.
+최종 Android 통합 확인일: **2026-10-21**. 최신 버전 재확인일: **2026-11-04**. 기준 엔진: **Godot 4.7.2**, Template: **0.5.0**.
 초기 조사는 2026-09-16, GPGS 최초 설치는 2026-10-01이다. 날짜별 실제 검사 결과는 [VALIDATION.md](template/VALIDATION.md)를 따른다.
 
 ## 상태의 의미
@@ -11,12 +11,12 @@
 - **Unverified**: 해당 기능을 실제 스토어·계정·기기 조합으로 확인하지 않았다.
 - **Experimental / Unknown**: API 개발 중 또는 정확한 조합을 공개 자료로 확인하지 못했다.
 
-## 채택 BOM — Mobile Template BOM v0.4.0
+## 채택 BOM — Mobile Template BOM v0.5.0
 
 | 구성 | 고정 버전 | 플랫폼 | 상태 / 호환성 근거 |
 | --- | --- | --- | --- |
 | Godot / GDScript | 4.7.2 | All | Locked; 엔진 버전 유지 |
-| 공통 Service / Mock / Adapter | Template 0.4.0 | All | In-repo |
+| 공통 Service / Mock / Adapter | Template 0.5.0 | All | In-repo |
 | Godot Play Game Services | v3.4.0 | Android | MIT, AAR 유지; SDK 갱신 후 JNI·기기 로딩 확인, 계정 기능 미검증 |
 | Google Play Games Services v2 | 22.1.0 | Android | Installed, export opt-in |
 | Gson | 2.14.0 | Android | Apache-2.0, Java 8+/Android API 21+ |
@@ -27,7 +27,7 @@
 | Google UMP | 4.0.0 | Android | Ads의 전이 의존성; 갱신 후 광고 자격 확인 |
 | AndroidX ConstraintLayout | 2.2.0 | Android | Apache-2.0; Poing Android exporter 고정 의존성 |
 | Kotlin runtime (전이 의존성) | 2.2.10 | Android | Billing 9.1.0이 요구; Apache-2.0, export·기기 결과는 VALIDATION 참고 |
-| GodotOneStoreIap | Template 0.4.0 소스 | Android (ONE store) | 템플릿 소유 Java 소스, `build.sh`로 로컬 AAR 생성(Git 제외); 컴파일·가짜 SDK 계약만 확인, **Unverified** |
+| GodotOneStoreIap | Template 0.5.0 소스 | Android (ONE store) | 템플릿 소유 Java 소스, `build.sh`로 로컬 AAR 생성(Git 제외); 컴파일·가짜 SDK 계약만 확인, **Unverified** |
 | ONE store IAP SDK (`com.onestorecorp.sdk:sdk-iap`) | 21.04.00 | Android (ONE store) | Maven Central; 전이 의존성 sdk-auth 1.2.2 → sdk-base 1.2.2; [ONE store SDK 약관](https://m.onestore.co.kr/common/license/ONESTORE_SDK_TERMS.html), 오픈소스 아님 |
 | iOS native plugins | 없음 | iOS | Game Center / IAP / 광고 바이너리 미설치 |
 | GitHub Actions `actions/checkout` | v5.0.1 (`93cb6efe18208431cddfb8368fd83d5badbf9bfd`) | CI | MIT; commit SHA 고정 |
