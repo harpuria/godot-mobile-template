@@ -52,6 +52,7 @@ project.godot
 | 구매 지급·중복 방지 구현 | `examples/purchase_ledger/`를 `game/`으로 복사; 검사는 `tests/purchase_ledger_checks.gd` |
 | ONE store 결제 | `docs/ONESTORE.md`, `services/billing/onestore_billing_adapter.gd`, `native/android/onestore_iap/` |
 | 스토어 배포·export preset | `docs/STORE_RELEASE.md`, `tools/configure.gd`, `export_presets.cfg` |
+| AI 편집기 연결·MCP 교체 | `addons/godot_ai/`, `.codex/config.toml`, `.mcp.json` 및 [연결 절차](DEVELOPMENT.md#godot-mcp) |
 | CI·문서 링크 검사 | `.github/workflows/ci.yml`, `tools/check_docs.py` |
 | pause/resume·Android back | `autoload/app.gd`의 신호를 게임/UI에서 구독 |
 | 플랫폼·진동·안전 영역 | `core/platform/mobile_platform.gd`, `ui/common/safe_area.gd` |
@@ -68,7 +69,7 @@ project.godot
 - **Android 결제·광고 설정 전파:** `addons/android_services/plugin.gd`가 `config/android.local.cfg`의 billing/ads/privacy whitelist만 `android_services.build.cfg`로 주입합니다. App이 기능별 `android_mode`와 `android_native_verified`로 어댑터를 선택합니다. SDK 포함은 `billing/include_sdk`, `billing/onestore_include_sdk`, `ads/include_sdk`이며 개발용 preset은 모두 false입니다. 두 결제 SDK는 한 preset에 함께 넣을 수 없습니다.
 - **스토어 구분:** `GameConfig.store()`는 iOS면 `app_store`, export custom feature `onestore`가 있으면 `onestore`, 그 외 `google_play`입니다. App은 ONE store에서 `OneStoreBillingAdapter`를 선택하고 BillingService는 해당 스토어의 상품 ID를 씁니다.
 - **추가 공개 API:** `App.billing.query_products()`, `transaction_received`, `purchase_pending`, `finish_purchase(token)`, `get_unfinished_transactions()`는 수신·검증·스토어 완료를 분리합니다. `App.privacy.can_request_ads()`는 광고 자격이며 분석 동의인 `can_use_services()`와 별도입니다. 계약은 `docs/ANDROID_SERVICES.md`를 따릅니다.
-- **프로젝트·export 설정:** 앱 이름·버전·build_number·package/bundle·orientation·main_scene·기능 플래그를 바꾸면 `tools/configure.gd`를 실행해 `project.godot`와 모든 Android/iOS preset에 반영합니다. 스토어 preset(`Android Google Play`, `Android ONE store`)이 없으면 만들고 Gradle·SDK 포함·데모 제외 filter를 맞춥니다. 진단(`probe`) preset은 건드리지 않습니다. 실행 후 diff를 확인하세요. CI가 커밋된 결과와 재실행 결과의 차이를 검사합니다.
+- **프로젝트·export 설정:** 앱 이름·버전·build_number·package/bundle·orientation·main_scene·기능 플래그를 바꾸면 `tools/configure.gd`를 실행해 `project.godot`와 모든 Android/iOS preset에 반영합니다. 스토어 preset(`Android Google Play`, `Android ONE store`)이 없으면 만들고 Gradle·SDK 포함·데모 제외 filter를 맞춥니다. 기본·스토어 preset은 이름과 플랫폼으로 찾고, 진단(`probe`) preset은 보존합니다. 실행 후 diff를 확인하세요. CI가 커밋된 결과와 재실행 결과의 차이를 검사합니다.
 
 - **로컬 빌드 환경:** JDK/SDK 경로는 Godot Editor Settings, signing은 로컬 export 자격 증명에서 관리합니다. 로컬 파일은 해당 exporter가 허용한 키만 빌드에 주입합니다. 일반 실행에서 임의의 local 파일을 자동 병합하지 않습니다.
 
@@ -84,9 +85,9 @@ godot --headless --path . --script res://tools/configure.gd
 - **초기화 실패:** App은 저장 load 실패 후에도 초기화 완료를 알리고 SaveManager는 쓰기를 차단합니다. bootstrap은 첫 장면 전에 `SaveRecoveryPopup`을 띄워 다시 시도 또는 확인 후 새로 시작을 기다립니다. 읽지 못한 원본은 `save.json.unreadable`로 남습니다. `[save] recovery_popup=false`면 팝업 없이 진행하므로 게임이 `SaveManager.write_blocked`를 처리해야 합니다. bootstrap을 거치지 않는 실행(F6, 검사)에서는 팝업이 없으므로 `ready_for_game`을 저장 성공의 증거로 사용하지 마세요.
 - **언어:** `Settings`의 `language` 기본값은 빈 값이며 기기 locale을 적용합니다. 번역이 없는 언어는 프로젝트 fallback(`en`)으로 표시됩니다. 번역 리소스는 게임이 init script에서 등록합니다.
 - **광고·동의:** 보상은 `rewarded_completed`에서 지급합니다. 광고는 privacy.can_request_ads(), 분석은 privacy.can_use_services()가 필요하며 `privacy_enabled=false`도 허용 상태가 아닙니다.
-- **결제:** 게임은 logical 상품 ID를 전달합니다. Native는 transaction_received를 검증·저장한 뒤 finish_purchase를 호출하고 purchase_token으로 중복 지급을 방지합니다. Android native는 시작·재개 때 미완료 구매를 다시 보내므로 게임은 첫 장면에서 신호를 연결하고 `get_unfinished_transactions()`도 처리합니다. Mock은 transaction_id를 사용합니다. Mock 복원은 같은 실행 세션의 비소모성·구독 거래만 반환합니다.
+- **결제:** 게임은 logical 상품 ID를 전달합니다. Native는 transaction_received를 검증·저장한 뒤 finish_purchase를 호출하고 purchase_token으로 중복 지급을 방지합니다. Android native는 시작·재개 때 미완료 구매를 다시 보내므로 게임은 첫 장면에서 신호를 연결하고 `get_unfinished_transactions()`도 처리합니다. Native 복원 목록에는 스토어가 보유 중으로 반환한 완료 토큰도 포함됩니다. Mock은 transaction_id를 사용합니다. Mock 복원은 같은 실행 세션의 비소모성·구독 거래만 반환합니다.
 - **Mock 선택:** `mode="mock"`인 debug 빌드에서 사용합니다. 모바일은 `allow_mobile_debug_mocks=true`도 필요합니다. release는 Mock을 선택하지 않습니다. Android 결제·광고·UMP는 기능별 native gate와 SDK 포함 옵션이 필요합니다.
-- **일시정지·전환:** App의 모바일 pause 알림은 저장·오디오를 처리하며 게임 전체의 일시정지 정책을 정하지 않습니다. SceneManager는 메인 스레드에서 로드하고 `_process`를 사용합니다. `SceneTree.paused=true` 상태에서 장면 이동이 필요하면 process mode와 복귀 정책을 함께 검증하세요.
+- **일시정지·전환:** 모바일 pause 시 오디오가 멈추고, `App.paused` 동기 구독자가 기록한 변경까지 저장합니다. 게임 전체의 일시정지 정책은 게임이 정합니다. SceneManager는 메인 스레드에서 로드하고 `_process`를 사용합니다. `SceneTree.paused=true` 상태에서 장면 이동이 필요하면 process mode와 복귀 정책을 함께 검증하세요.
 
 ## 변경 후 검증
 
@@ -97,7 +98,7 @@ godot --headless --path . --script res://tools/configure.gd
 | 초기화·feature flag·Adapter 선택 | 기본 검사 + `--disabled` + `--native` |
 | Safe Area·터치·방향·lifecycle·export·native SDK | 대상 플랫폼 빌드와 실기기 확인; Desktop 검사로 대체하지 않음 |
 | 문서만 변경 | 코드·경로 대조와 `python3 tools/check_docs.py`; 런타임 재검사 불필요 |
-| export preset·configure 변경 | configure 재실행 후 `project.godot`·`export_presets.cfg` diff가 없어야 함 (CI와 동일) |
+| export preset·configure 변경 | `python3 tests/test_configure.py`로 손상 파일 보존·최초 생성·preset 재정렬과 이름 충돌을 검사하고, configure 재실행 후 `project.godot`·`export_presets.cfg` diff가 없는지 확인 |
 
 ```bash
 godot --headless --path . --editor --import --quit

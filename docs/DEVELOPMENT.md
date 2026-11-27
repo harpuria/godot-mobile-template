@@ -127,6 +127,22 @@ python3 tools/check_docs.py
 모든 결과가 `PASS`, 마지막 `failures=0`인지 확인합니다. CI에서는 종료 코드뿐 아니라 `SCRIPT ERROR`, `Parse Error` 로그와 완료 요약도 검사하세요.
 `.github/workflows/ci.yml`이 push·PR마다 공식 Godot 4.7.2 Linux 빌드(SHA-256 확인)로 위 명령과 configure 동기화 diff를 검사합니다.
 
+## Godot MCP
+
+템플릿은 Godot AI 4.4.2 에디터 플러그인을 활성화하고 Codex(`.codex/config.toml`)와 Claude Code(`.mcp.json`)에 같은 버전의 stdio 서버를 등록한다. 클라이언트와 Godot는 같은 컴퓨터와 사용자 계정에서 실행한다.
+
+1. Godot와 클라이언트가 실행되는 환경에서 `uvx --version`으로 uv **0.9.25 이상**을 확인한다. 첫 연결은 PyPI에서 서버와 의존성을 받는다. 지원하는 Python은 3.11–3.14다. [uv 설치](https://docs.astral.sh/uv/getting-started/installation/)
+2. Godot 4.7.2에서 프로젝트를 열어 둔 채 저장소 루트에서 클라이언트를 시작한다. Codex에서는 이 프로젝트를 신뢰해야 로컬 설정이 적용된다. Claude Code에서는 처음 표시되는 프로젝트 MCP 사용 요청을 승인한다. 다른 클라이언트에서는 Godot AI 독의 **Run this manually** 명령을 해당 클라이언트의 프로젝트 설정에 등록한다.
+3. 클라이언트에서 `session_manage(op="list")`를 호출한다. 목록에 현재 프로젝트 경로와 `readiness="ready"`가 보이면 연결된 것이다. 에디터가 여러 개면 작업할 경로의 `session_id`로 `session_activate`를 호출한다.
+
+Linux 클라우드에서 에디터 창 없이 연결하려면 프로젝트 루트에서 아래 명령을 실행한 채 클라이언트를 연다. 에디터와 클라이언트에 같은 `XDG_CONFIG_HOME`을 사용해야 로컬 인증 정보를 찾을 수 있다. 평소의 CI와 게임 테스트는 기존 headless 명령을 사용한다.
+
+```bash
+GODOT_AI_ALLOW_HEADLESS=1 GODOT_AI_DISABLE_TELEMETRY=true godot --headless --editor --path .
+```
+
+**다른 MCP로 교체하기.** Godot의 **Project → Project Settings → Plugins**에서 **Godot AI**를 끈다. 사용하는 클라이언트의 프로젝트 설정에서 `godot-ai` 항목만 제거하고 선택한 서버의 이름과 실행 명령 또는 URL을 등록한다. 대체 MCP에 에디터 플러그인이 필요하면 해당 플러그인을 켠다. 클라이언트를 재시작해 새 서버에서 같은 프로젝트를 조회한다. 이후 템플릿 업데이트에서도 게임의 선택을 유지한다.
+
 ## Creating a New Game
 
 1. 프로젝트를 복제하고 `config/game.cfg`의 이름, 버전, build_number, package/bundle, orientation을 바꿉니다.
@@ -181,6 +197,7 @@ godot --headless --path . --script res://tools/configure.gd
 ```
 
 이 도구는 이름·버전·orientation을 `project.godot`에, package/bundle/version/build_number를 모든 Android·iOS preset에 반영합니다.
+기존 `export_presets.cfg`의 읽기나 파싱에 실패하면 두 파일을 쓰기 전에 종료합니다. 오류 메시지에 표시된 권한이나 구문 문제를 해결한 뒤 다시 실행하세요.
 `Android Google Play`(AAB)·`Android ONE store`(APK) preset이 없으면 만들고, Gradle·SDK 포함 옵션을 기능 플래그와 스토어 규칙에 맞춥니다.
 signing 설정과 진단(`probe`) preset은 유지합니다. 스토어 제출마다 `build_number`를 올리고 다시 실행합니다. 자세한 내용은 [STORE_RELEASE.md](STORE_RELEASE.md).
 플래그는 시작 시 적용되므로 변경 후 앱을 재시작하세요.
@@ -327,6 +344,7 @@ Settings.set_setting("haptics_enabled", true)
 - `data`를 직접 수정하면 `mark_dirty()`가 필요합니다. 단순 문자열 키 단위 API를 우선합니다.
 - 쓰기는 `.tmp` 후 rename하며 직전 파일을 `save.json.bak`으로 남깁니다. 암호화, cloud save, 완전한 정전 내구성, 다중 프로세스 동시 쓰기는 제공하지 않습니다.
 - 원본이 없거나 JSON으로 읽히지 않으면 `.bak`으로 복구하고 `recovered_from_backup(error)`을 보냅니다. 직전 저장 이후의 진행은 잃을 수 있습니다. 버전·migration 오류는 백업으로 되돌리지 않습니다.
+- 원본과 백업이 모두 없으면 빈 슬롯으로 시작합니다. 백업만 남았고 읽기나 버전 변환에 실패하면 `load_slot()`과 `load_failed`가 백업의 오류 코드를 전달합니다.
 - 복구도 실패하면 기존 메모리/파일을 보존하고 쓰기를 차단합니다. bootstrap이 `SaveRecoveryPopup`(다시 시도 / 두 번 눌러 새로 시작)을 띄우고 첫 장면 진입을 기다립니다. 새로 시작하면 읽지 못한 원본을 `save.json.unreadable`로 남깁니다.
 - 팝업 문구는 영어 기본값이며 번역에 `SAVE_RECOVERY_*` 키를 추가하면 바뀝니다. `[save] recovery_popup=false`면 게임이 직접 `reset_slot()` 흐름을 만듭니다.
 - 저장 실패는 반환값과 `save_failed`/`load_failed` 신호로 전달됩니다. 종료 저장 실패 시 자동 종료를 보류합니다.

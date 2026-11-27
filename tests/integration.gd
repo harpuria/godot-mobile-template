@@ -31,6 +31,7 @@ func _run() -> void:
 		_check_unavailable_initialization()
 		return
 	_check_game_init_hook()
+	_check_backup_only_slot()
 	App.initialize()
 	check(App.ready_for_game, "App initialization")
 	var billing_before := App.billing
@@ -124,8 +125,14 @@ func _run() -> void:
 	var tone := preload("res://assets/demo/tone.wav")
 	AudioManager.play_bgm(tone)
 	check(AudioManager.bgm.playing, "BGM playback starts")
+	App.paused.connect(func(): SaveManager.set_value("pause_checkpoint", 42), CONNECT_ONE_SHOT)
 	App.notification(NOTIFICATION_APPLICATION_PAUSED)
 	check(AudioManager.bgm.stream_paused, "Pause suspends audio")
+	var reopened_slot := preload("res://autoload/save_manager.gd").new()
+	reopened_slot.schema_version = SaveManager.schema_version
+	reopened_slot.storage_path = SaveManager.storage_path
+	check(reopened_slot.load_slot() == OK and reopened_slot.data.get("pause_checkpoint") == 42, "A fresh session loads the checkpoint written by a pause listener")
+	reopened_slot.free()
 	App.notification(NOTIFICATION_APPLICATION_RESUMED)
 	check(not AudioManager.bgm.stream_paused, "Resume restores audio")
 	AudioManager.stop_bgm()
@@ -239,6 +246,32 @@ func _run() -> void:
 	DirAccess.remove_absolute(test_dir)
 	print("INTEGRATION: %s checks, %s failures" % [checks, failures])
 	get_tree().quit(0 if failures == 0 else 1)
+
+## 원본이 사라진 슬롯에서 백업을 읽을 수 있을 때만 복구하고, 실패 시 다음 저장도 막는지 검사한다.
+func _check_backup_only_slot() -> void:
+	var slot := preload("res://autoload/save_manager.gd").new()
+	slot.storage_path = test_dir.path_join("backup_only.json")
+	var backup_path := slot.storage_path + JsonStore.BACKUP_SUFFIX
+	check(slot.load_slot() == OK and slot.data.is_empty() and not slot.write_blocked, "Missing save and backup start a fresh slot")
+	slot.set_value("level", 1)
+	var errors: Array[int] = []
+	slot.load_failed.connect(func(error: int): errors.append(error))
+	var file := FileAccess.open(backup_path, FileAccess.WRITE)
+	file.store_string("{broken")
+	file.close()
+	check(slot.load_slot() == ERR_PARSE_ERROR and slot.write_blocked, "Unreadable lone backup blocks writing")
+	JsonStore.write(backup_path, {"version": 2, "data": {"level": 50}})
+	var backup_bytes := FileAccess.get_file_as_bytes(backup_path)
+	check(slot.load_slot() == ERR_INVALID_DATA and errors == [ERR_PARSE_ERROR, ERR_INVALID_DATA], "Lone backup reports its own load error")
+	check(slot.data.get("level") == 1 and slot.dirty and slot.write_blocked, "Failed backup load preserves pending progress")
+	check(slot.save_slot() == ERR_UNAUTHORIZED, "Explicit save is blocked after failed recovery")
+	slot.set_value("level", 2)
+	check(slot.flush() == ERR_UNAUTHORIZED, "Autosave is blocked after failed recovery")
+	check(not FileAccess.file_exists(slot.storage_path) and FileAccess.get_file_as_bytes(backup_path) == backup_bytes, "Blocked writes preserve the only backup byte for byte")
+	slot.schema_version = 2
+	check(slot.load_slot() == OK and slot.data.get("level") == 50 and not slot.write_blocked, "Retry recovers a compatible lone backup")
+	check(slot.dirty and slot.flush() == OK and FileAccess.get_file_as_bytes(backup_path) == backup_bytes, "Recovered progress can be saved without replacing its backup")
+	slot.free()
 
 ## bootstrap의 게임 초기화 hook 호출과 잘못된 script 거절을 검증한다.
 func _check_game_init_hook() -> void:

@@ -3,6 +3,7 @@
 ## Start here
 
 - At the start of a new task, read [docs/CODEBASE_MAP.md](docs/CODEBASE_MAP.md) for entry points, ownership, task-to-file mappings and validation routes. Follow its task-specific document links before editing the relevant area.
+- For live Godot editor work, use the Godot MCP selected by the user or the receiving project. The template default is Godot AI. See [connection and replacement](docs/DEVELOPMENT.md#godot-mcp).
 - When applying this template to a new or existing game, or updating a derived game to a newer template version, follow [docs/template/APPLYING.md](docs/template/APPLYING.md).
 
 ## Commands

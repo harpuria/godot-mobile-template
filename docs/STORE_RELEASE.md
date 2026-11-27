@@ -7,6 +7,7 @@
 ## 배포용 export preset
 
 `tools/configure.gd`가 `config/game.cfg` 값으로 아래 preset을 만들고 갱신한다. 이름은 preset 식별자이므로 바꾸지 않는다.
+순서는 자유롭게 바꿀 수 있다. 동기화는 이름과 플랫폼으로 기존 preset을 찾아 설정을 갱신하고, 누락된 스토어 preset은 현재 Android 개발용 preset에서 복사한다. 이름이 중복되거나 다른 플랫폼·진단용 preset이 같은 이름을 쓰면 충돌한 이름과 섹션을 출력하고 저장 전에 중단한다.
 
 | Preset | 용도 | 형식 | SDK 포함 |
 | --- | --- | --- | --- |

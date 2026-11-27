@@ -3,6 +3,8 @@
 최종 Android 통합 확인일: **2026-10-21**. 최신 버전 재확인일: **2026-11-04**. 기준 엔진: **Godot 4.7.2**, Template: **0.5.0**.
 초기 조사는 2026-09-16, GPGS 최초 설치는 2026-10-01이다. 날짜별 실제 검사 결과는 [VALIDATION.md](template/VALIDATION.md)를 따른다.
 
+Godot AI 4.4.2의 원본 commit은 `423954f4314e250fa2602525d461debc91b1a173`, 공식 `godot-ai-v4-plugin.zip`의 SHA-256은 `93b976b68df03352073d36c30b6daa593cdc42322cd10f6dacdec10d049ac9a0`이다. 갱신할 때는 새 태그의 공식 manifest·서명·ZIP을 upstream `script/v4-release verify`로 검증한다. 애드온 전체와 두 클라이언트의 버전·의존성 기준일·Python 범위를 함께 갱신한다. [배포 및 검증 절차](https://github.com/hi-godot/godot-ai/blob/v4.4.2/docs/packaging-distribution.md)
+
 ## 상태의 의미
 
 - **Locked**: 정확히 고정한 버전.
@@ -16,6 +18,7 @@
 | 구성 | 고정 버전 | 플랫폼 | 상태 / 호환성 근거 |
 | --- | --- | --- | --- |
 | Godot / GDScript | 4.7.2 | All | Locked; 엔진 버전 유지 |
+| [Godot AI](https://github.com/hi-godot/godot-ai/releases/tag/v4.4.2) | 4.4.2 (애드온·Python 서버) | 에디터 전용, 모바일 SDK 없음 | MIT. 서명된 플러그인 ZIP 검증, Godot 4.7.2 Linux 편집기와 MCP stdio 연결 확인 |
 | 공통 Service / Mock / Adapter | Template 0.5.0 | All | In-repo |
 | Godot Play Game Services | v3.4.0 | Android | MIT, AAR 유지; SDK 갱신 후 JNI·기기 로딩 확인, 계정 기능 미검증 |
 | Google Play Games Services v2 | 22.1.0 | Android | Installed, export opt-in |

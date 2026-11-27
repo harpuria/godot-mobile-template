@@ -115,6 +115,7 @@ var events: Array = []
 ## 계약 검사는 실기기·스토어 검증을 대신하지 않는다.
 func run(test: Node) -> void:
 	_billing(test)
+	_restore_entitlements(test)
 	_onestore(test)
 	await _ads_and_privacy(test)
 	for adapter in [AndroidBillingAdapter.new(), AndroidAdmobAdapter.new(), AndroidAdmobPrivacyAdapter.new()]:
@@ -241,6 +242,61 @@ func _billing(test: Node) -> void:
 	var restored := events.slice(before).filter(func(event: Array) -> bool: return event[0] == "restored")
 	test.check(restored.is_empty() and adapter._operation.is_empty(), "Resume sync never emits unsolicited restore_completed")
 	service.queue_free()
+
+## SDK 복원 응답에서 대기·정지 거래가 구매 원장에 보유 권한으로 기록되는지 검사한다.
+func _restore_entitlements(test: Node) -> void:
+	var service := BillingService.new()
+	test.add_child(service)
+	var adapter := BillingHarness.new()
+	service.initialize(true, adapter)
+	var sdk := adapter.sdk
+	# 초기 자동 조회를 마친 뒤 게임이 요청한 복원 응답을 보낸다.
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": []})
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": []})
+	var saved_data := SaveManager.data.duplicate(true)
+	SaveManager.reset_slot({})
+	var ledger := preload("res://examples/purchase_ledger/purchase_ledger.gd").new()
+	service.add_child(ledger)
+	ledger.attach(service)
+	var pending: Array[String] = []
+	var restores: Array = []
+	service.purchase_pending.connect(func(id: String, _tx: Dictionary): pending.append(id))
+	service.restore_completed.connect(func(items: Array): restores.append(items))
+
+	var ads := _transaction("com.example.game.remove_ads", "ads-restore", 2)
+	var premium := _transaction("com.example.game.premium", "premium-restore")
+	premium.is_suspended = true
+	service.restore_purchases()
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": [ads]})
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": [premium]})
+	test.check(restores == [[]], "Pending and suspended purchases are excluded from restore results")
+	test.check(pending == ["REMOVE_ADS", "PREMIUM"], "Pending and suspended purchases still notify the game")
+	test.check(not ledger.owns("REMOVE_ADS") and not ledger.owns("PREMIUM"), "Restore cannot grant pending or suspended entitlements")
+
+	ads.purchase_state = 1
+	service.restore_purchases()
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": [ads]})
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": [premium]})
+	test.check(restores.size() == 2 and restores[1].size() == 1 and restores[1][0].purchase_token == "ads-restore", "The same token becomes restorable once purchased")
+	test.check(ledger.owns("REMOVE_ADS") and not ledger.owns("PREMIUM"), "Only the confirmed entitlement is granted")
+	sdk.acknowledge_purchase_response.emit({"response_code": 0, "token": "ads-restore"})
+	ads.is_acknowledged = true
+	var deliveries: Array[String] = []
+	service.transaction_received.connect(func(id: String, _tx: Dictionary): deliveries.append(id))
+	service.purchase_completed.connect(func(id: String, _tx: Dictionary): deliveries.append(id))
+	ledger.entitlement_changed.connect(func(id: String, _owned: bool): deliveries.append(id))
+	service.restore_purchases()
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": [ads]})
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": []})
+	test.check(restores.size() == 3 and restores.back().size() == 1 and restores.back()[0].purchase_token == "ads-restore", "A finalized purchase still appears in the store's current inventory")
+	test.check(deliveries.is_empty() and service.get_unfinished_transactions().is_empty(), "Restoring a finalized token does not deliver, grant or finish it again")
+	service.restore_purchases()
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": []})
+	sdk.query_purchases_response.emit({"response_code": 0, "purchases": []})
+	test.check(restores.size() == 4 and restores.back().is_empty(), "A finalized token absent from the store is absent from the next restore")
+	service.queue_free()
+	SaveManager.reset_slot(saved_data)
+	SaveManager.save_slot()
 
 ## ONE store 플러그인은 Google 결제와 같은 JNI 계약을 쓰되 상품 ID·공개 키·복구 오류가 다르다.
 func _onestore(test: Node) -> void:

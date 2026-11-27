@@ -37,6 +37,7 @@ jobs:
 
       - name: Config sync is committed
         run: |
+          python3 tests/test_configure.py
           "$GODOT" --headless --path . --script res://tools/configure.gd
           git diff --exit-code project.godot export_presets.cfg
 

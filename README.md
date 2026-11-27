@@ -22,6 +22,10 @@ Google Play(AAB)와 ONE store(APK) 배포 preset이 있고, ONE store 결제 플
 
 `MOBILE TEMPLATE` 화면이 나오면 성공이다.
 
+### AI로 편집기 연결하기
+
+이 템플릿의 기본 Godot MCP는 **Godot AI 4.4.2**다. 에디터 플러그인과 Codex·Claude Code용 프로젝트 설정을 포함한다. `uvx`를 사용할 수 있는 환경에서 프로젝트를 Godot로 열고 같은 폴더에서 클라이언트를 시작한다. 다른 Godot MCP를 쓰는 게임은 해당 프로젝트의 선택을 우선한다. [연결 확인 및 MCP 교체](docs/DEVELOPMENT.md#godot-mcp)
+
 ## 2. 버튼을 눌러 확인하기
 
 화면 아래쪽 버튼은 스크롤하면 보인다.
@@ -108,7 +112,7 @@ Android Play Games v3.4.0 플러그인을 설치했고 Android 16에서 Debug·R
 | 휴대폰에서 `Unavailable` 표시 | 위의 Mock 설정을 확인하고 Debug 빌드로 다시 설치한다 |
 | 소리가 나지 않음 | 휴대폰·컴퓨터 음량과 데모 아래쪽 Volume 설정을 확인한다 |
 | 새 게임 대신 데모 실행 | `main_scene` 경로와 파일 저장 여부를 확인한다 |
-| 시작할 때 저장 복구 화면이 나옴 | 저장 파일과 백업을 모두 읽지 못한 상태다. `Try again` 또는 `Start new game`을 두 번 누른다 |
+| 시작할 때 저장 복구 화면이 나옴 | 진행을 복구하려면 저장 파일이나 백업을 확인한 뒤 `Try again`을 누른다. 백업이 더 새 버전이면 그 버전을 지원하는 게임에서 다시 연다. 진행을 초기화하려면 `Start new game`을 두 번 누른다 |
 | 앱 내보내기 실패 | [Android](docs/DEVELOPMENT.md#android-setup) 또는 [iPhone](docs/DEVELOPMENT.md#ios-setup) 준비 방법을 확인한다 |
 
 ## Dependency BOM
@@ -118,6 +122,7 @@ Android Play Games v3.4.0 플러그인을 설치했고 Android 16에서 Debug·R
 | 구성 | 버전 |
 | --- | --- |
 | Godot / 내장 GDScript | 4.7.2 |
+| 에디터 MCP | [Godot AI 4.4.2](https://github.com/hi-godot/godot-ai/releases/tag/v4.4.2), MIT. 애드온·Python 서버 동일 버전, 모바일 SDK 없음 |
 | 이 템플릿 | 0.5.0 ([변경 기록](docs/template/CHANGELOG.md)) |
 | Android 결제 플러그인 | [GodotGooglePlayBilling 3.3.0](https://github.com/godot-sdk-integrations/godot-google-play-billing/releases/tag/3.3.0), MIT; Google Billing `9.1.0`; Gradle export opt-in, 스토어 구매 미검증 |
 | Android 광고 플러그인 | [Poing AdMob 5.1.0](https://github.com/poingstudios/godot-admob-plugin/releases/tag/v5.1.0), MIT; Google Next-Gen Ads `1.4.0`, UMP `4.0.0`, ConstraintLayout `2.2.0` (Apache-2.0); Gradle export opt-in |

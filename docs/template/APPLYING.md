@@ -26,6 +26,8 @@ git -C /tmp/godot-mobile-template rev-parse HEAD
 `v0.5.0` 대신 원하는 태그를 지정한다. 태그가 목록에 없으면(`Remote branch v0.5.0 not found`) `--branch main`으로 받고,
 `autoload/game_config.gd`의 `TEMPLATE_VERSION`과 `rev-parse` 결과를 함께 기록한다. 태그가 없다고 적용을 중단하지 않는다.
 
+기본 Godot MCP도 가져오려면 선택한 버전에 `addons/godot_ai/plugin.cfg`와 클라이언트 설정이 있는지 확인한다.
+
 ## 2. 프로젝트로 복사하기
 
 **새 프로젝트(빈 폴더):** `.git/`, `.godot/`을 제외하고 전부 복사한 뒤, 사용자가 동의하면 Git을 초기화한다.
@@ -40,6 +42,8 @@ rsync -a --exclude .git --exclude .godot /tmp/godot-mobile-template/ ./
 rsync -a --ignore-existing --exclude .git --exclude .godot /tmp/godot-mobile-template/ ./
 ```
 
+기존 게임이 다른 Godot MCP를 선택했다면 복사 명령에 `--exclude /addons/godot_ai/ --exclude /.mcp.json --exclude /.codex/config.toml`을 추가하고, `project.godot`를 병합할 때 기존 MCP의 플러그인과 Autoload 구성을 유지한다.
+
 기존 게임이라면 템플릿 전체 도입이 자동 migration은 아니다. 요청 범위에 필요한 Service·관리자만 가져오고 기존 구조를 유지한다.
 
 ## 3. 파일 분류
@@ -47,6 +51,7 @@ rsync -a --ignore-existing --exclude .git --exclude .godot /tmp/godot-mobile-tem
 | 경로 | 처리 | 이유 |
 | --- | --- | --- |
 | `autoload/`, `core/`, `services/`, `ui/`, `tools/` | 유지 | 프레임워크. 게임 변경은 `game/`에서 한다 |
+| `addons/godot_ai/`, `.codex/config.toml`, `.mcp.json` | 새 게임의 기본 MCP. 기존 클라이언트 설정에는 필요한 서버 항목만 병합 | 사용자가 선택한 MCP 우선. [연결·교체](../DEVELOPMENT.md#godot-mcp) |
 | `addons/play_game_services/` | 유지 | Android Play Games AAR, export opt-in. 기본 export에는 SDK 미포함 |
 | `addons/android_services/` | 유지 | Android 결제·AdMob AAR, 라이선스·해시와 export opt-in. 기본 SDK 포함/gate는 false. `onestore/bin/`은 로컬 빌드 출력(Git 제외) |
 | `native/android/onestore_iap/` | 유지 (ONE store 미사용이면 제외 가능) | ONE store 결제 플러그인 소스와 `build.sh`. export 제외 |

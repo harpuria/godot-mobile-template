@@ -113,9 +113,9 @@ func _apply_orientation() -> void:
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_APPLICATION_PAUSED:
-			SaveManager.flush()
 			AudioManager.set_suspended(true)
 			paused.emit()
+			SaveManager.flush()
 		NOTIFICATION_APPLICATION_RESUMED:
 			AudioManager.set_suspended(false)
 			resumed.emit()
