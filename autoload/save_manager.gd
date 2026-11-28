@@ -61,12 +61,13 @@ func load_slot() -> Error:
 	# 버전·migration 오류는 파일 손상이 아니므로 예전 백업으로 되돌리지 않는다.
 	var backup := _read_slot(storage_path + JsonStore.BACKUP_SUFFIX) if primary.unreadable else {"error": primary.error}
 	if backup.error != OK:
-		if primary.error == ERR_FILE_NOT_FOUND:
+		if primary.error == ERR_FILE_NOT_FOUND and backup.error == ERR_FILE_NOT_FOUND:
 			_accept({}, false)
 			return OK
+		var error: Error = backup.error if primary.error == ERR_FILE_NOT_FOUND else primary.error
 		write_blocked = true
-		load_failed.emit(primary.error)
-		return primary.error as Error
+		load_failed.emit(error)
+		return error
 	# 읽지 못한 원본은 보관하고, 다음 저장이 정상 백업을 덮어쓰지 않게 한다.
 	_keep_unreadable_copy()
 	_skip_backup_once = true

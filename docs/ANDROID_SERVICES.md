@@ -68,8 +68,10 @@ GameConfig는 같은 whitelist만 읽는다. 앱 이름·main scene·다른 기�
 | `transaction_received(logical_id, transaction)` | PURCHASED 수신. `verified=false`, `mock=false`; 게임이 서버 검증과 저장을 수행할 단계 |
 | `finish_purchase(purchase_token) -> Error` | 게임이 검증·중복 지급 방지·지급 기록 저장을 마친 뒤 호출 |
 | `purchase_completed(logical_id, transaction)` | 일회성 비소모성/구독 acknowledge 또는 소모성 consume 완료; `finished=true` |
-| `restore_purchases()` | inapp/subs 순차 조회. 미완료 소모성도 검증 이벤트로 복구하고 복원 목록에는 비소모성/구독만 넣음 |
+| `restore_purchases()` | inapp/subs 순차 조회. 미완료 소모성도 검증 이벤트로 복구한다. 복원 목록에는 PURCHASED 상태이고 이용 정지되지 않은 비소모성 상품·구독만 포함한다 |
 | `get_unfinished_transactions() -> Array` | 수신했지만 finish하지 않은 거래 사본. 신호 연결 전에 도착한 거래를 처리할 때 사용 |
+
+같은 실행 중에 이미 완료한 비소모성 상품이나 구독도 스토어가 현재 보유 중으로 반환하면 `restore_completed` 목록에 포함된다. 이 토큰에 대한 지급·완료 신호는 다시 보내지 않는다.
 
 게임은 `transaction_received`에서 purchase token, package, product, 수량, 구매 상태와 entitlement를 서버에서 검증한다.
 검증된 지급 기록을 게임의 SaveManager schema 또는 서버에 내구성 있게 저장한 뒤 `finish_purchase()`를 호출한다.

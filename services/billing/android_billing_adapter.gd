@@ -246,8 +246,8 @@ func _purchase_updated(response: Dictionary) -> void:
 		return
 	var matched := false
 	for raw in response.get("purchases", []):
-		var transaction := _receive(raw)
-		if transaction.get("logical_id", "") == _logical_id and not _logical_id.is_empty():
+		var transaction := _parse_transaction(raw)
+		if _receive(transaction) and transaction.logical_id == _logical_id:
 			matched = true
 	if _operation == "purchase" and matched:
 		_clear()
@@ -264,9 +264,10 @@ func _purchases(response: Dictionary) -> void:
 		_fail(_native_reason(response.get("response_code", -1)))
 		return
 	for raw in response.get("purchases", []):
-		var transaction := _receive(raw, true)
-		if not transaction.is_empty() and transaction.type != "consumable":
+		var transaction := _parse_transaction(raw)
+		if _is_active_purchase(transaction) and transaction.type in ["non_consumable", "subscription"]:
 			_items.append(transaction)
+		_receive(transaction, true)
 	if _stage == "inapp":
 		_stage = "subs"
 		_dispatch()
@@ -278,10 +279,15 @@ func _purchases(response: Dictionary) -> void:
 			restore_completed.emit(items)
 		_drain()
 
-func _receive(raw: Dictionary, replay: bool = false) -> Dictionary:
+## 스토어가 구매를 확정했고 이용 정지 상태가 아닌 거래만 복원·검증 대상으로 본다.
+func _is_active_purchase(transaction: Dictionary) -> bool:
+	return int(transaction.get("purchase_state", 0)) == 1 and not bool(transaction.get("is_suspended", false))
+
+## 현재 스토어 응답을 상품 카탈로그에 매핑한다. 복원 목록은 이 스냅샷으로 구성한다.
+func _parse_transaction(raw: Dictionary) -> Dictionary:
 	var token := str(raw.get("purchase_token", ""))
 	var ids: Variant = raw.get("product_ids", [])
-	if token.is_empty() or _finalized.has(token) or not (ids is Array or ids is PackedStringArray) or ids.size() != 1:
+	if token.is_empty() or not (ids is Array or ids is PackedStringArray) or ids.size() != 1:
 		return {}
 	for logical_id in _catalog:
 		var product: Dictionary = _catalog[logical_id]
@@ -292,20 +298,27 @@ func _receive(raw: Dictionary, replay: bool = false) -> Dictionary:
 			return {}
 		var transaction := raw.duplicate(true)
 		transaction.merge({"logical_id": logical_id, "store_id": product.store_id, "type": product.type, "verified": false, "mock": false}, true)
-		if state == 1 and not bool(raw.get("is_suspended", false)):
-			if _awaiting.has(token):
-				if replay:
-					_deliveries.append(transaction)
-				return transaction
-			_awaiting[token] = transaction
-		_deliveries.append(transaction)
 		return transaction
 	return {}
+
+## 미완료 거래만 구매 요청의 응답으로 인정한다. 재조회하면 검증 대기 거래를 다시 전달한다.
+func _receive(transaction: Dictionary, replay: bool = false) -> bool:
+	if transaction.is_empty() or _finalized.has(transaction.purchase_token):
+		return false
+	var token := str(transaction.purchase_token)
+	if _is_active_purchase(transaction):
+		if _awaiting.has(token):
+			if replay:
+				_deliveries.append(transaction)
+			return true
+		_awaiting[token] = transaction
+	_deliveries.append(transaction)
+	return true
 
 func _drain() -> void:
 	while _operation.is_empty() and not _deliveries.is_empty():
 		var transaction: Dictionary = _deliveries.pop_front()
-		if int(transaction.purchase_state) == 2 or bool(transaction.get("is_suspended", false)):
+		if not _is_active_purchase(transaction):
 			purchase_pending.emit(str(transaction.logical_id), transaction.duplicate(true))
 		else:
 			transaction_received.emit(str(transaction.logical_id), transaction.duplicate(true))

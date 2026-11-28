@@ -43,7 +43,7 @@ feature flag는 시작 시 확정하며 런타임 재구성 API를 만들지 않
   threaded load 경로에서 이 4.7.2 환경의 종료 RefCounted 경고가 관찰되어 v0.1.0은 단순 load를 선택했다.
   대형 장면 streaming은 별도 요구가 생겼을 때 검증 후 추가한다.
 - Android back은 `App.back_requested` 신호로 전달한다. 게임/UI가 팝업 닫기와 이동 정책을 결정한다.
-- pause는 SaveManager.flush와 AudioManager 일시 정지, resume은 오디오 재개를 수행한다.
+- pause는 오디오를 일시 정지하고 `App.paused`를 보낸다. 동기 구독자가 체크포인트를 기록한 뒤 `SaveManager.flush()`로 저장한다. resume은 오디오를 재개한다.
   앱 전체 SceneTree를 pause하지 않으므로 게임 시뮬레이션의 멈춤 정책은 게임이 결정한다.
 - 모바일 진동은 MobilePlatform을 사용하며 Settings를 존중한다. SafeArea는 resize마다 계산한다.
 
